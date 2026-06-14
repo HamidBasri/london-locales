@@ -1,32 +1,1855 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en-GB">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>London Locales</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; }
-        h1 { color: #cf142b; border-bottom: 2px solid #00247d; padding-bottom: 10px; }
-        .location { background: #f9f9f9; padding: 15px; margin-bottom: 15px; border-radius: 5px; border-left: 5px solid #00247d; }
-        h2 { margin-top: 0; color: #00247d; }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>London, A Visitor's Field Guide</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.js"></script>
+
+<!-- React 18.3 is the latest line that ships browser UMD builds, which a single self-contained file needs. -->
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+
+  :root {
+    --stone: #ECE6DA;
+    --stone-card: #F6F2E9;
+    --stone-deep: #E1D9C8;
+    --ink: #211D17;
+    --ink-soft: #534D43;
+    --ink-faint: #8A8273;
+    --line: #D5CCBA;
+    --line-soft: #E3DBCB;
+    --claret: #7C2A33;
+    --claret-deep: #5E1E26;
+    --brass: #8C6E2B;
+    --thames: #2C5862;
+    --focus: #1f5fbf;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(33,29,23,.05), 0 10px 28px rgba(33,29,23,.06);
+    --maxw: 1320px;
+    --controls-h: 160px; /* overridden dynamically by ResizeObserver */
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--stone);
+    color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  a { color: var(--claret); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+
+  /* Masthead */
+  .masthead { padding: 40px 0 22px; text-align: center; }
+  .kicker { font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 14px; }
+  .nameplate {
+    font-family: "Libre Caslon Display", Georgia, serif;
+    font-size: clamp(54px, 12vw, 130px);
+    line-height: .9; margin: 0; letter-spacing: .01em; color: var(--ink);
+  }
+  .double-rule { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+    height: 4px; max-width: 560px; margin: 18px auto 0; }
+  .sub { margin: 16px auto 0; max-width: 640px; color: var(--ink-soft); font-size: 15px; }
+  .dateline { margin-top: 10px; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--brass); font-weight: 600; }
+
+  /* Controls */
+  .controls {
+    position: sticky; top: 0; z-index: 30;
+    background: color-mix(in srgb, var(--stone) 90%, transparent);
+    backdrop-filter: saturate(140%) blur(8px);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .controls-inner { padding: 12px 0 10px; }
+  .search-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .search {
+    flex: 1 1 220px; display: flex; align-items: center; gap: 10px;
+    background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 16px; min-width: 0;
+  }
+  .search input { border: 0; background: transparent; outline: none; width: 100%; font: inherit; color: var(--ink); }
+  .search svg { flex: 0 0 auto; color: var(--ink-faint); }
+  .count { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+  .linkbtn {
+    background: none; border: 0; color: var(--claret); font: inherit;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0; white-space: nowrap;
+  }
+  .search-tools { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; margin-left: auto; }
+
+  /* Update-all progress */
+  .update-progress {
+    display: flex; align-items: center; gap: 7px; font-size: 12.5px;
+    color: var(--ink-soft); white-space: nowrap;
+  }
+  .update-count { font-weight: 600; color: var(--ink); }
+
+  .chiprow {
+    display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px;
+    scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+  }
+  .chiprow.wrapped { flex-wrap: wrap; overflow: visible; }
+  .chip {
+    flex: 0 0 auto; cursor: pointer; font: inherit; font-size: 12.5px;
+    border: 1px solid var(--line); background: var(--stone-card);
+    color: var(--ink-soft); border-radius: 999px; padding: 6px 13px;
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .chip:hover { border-color: var(--ink-faint); }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+  .chip.active { background: var(--ink); color: var(--stone-card); border-color: var(--ink); }
+  .chip.feat.active { background: var(--claret); border-color: var(--claret); color: #fff; }
+  .filters-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); margin: 12px 0 2px; }
+
+  /* Layout — map top and height track --controls-h set by ResizeObserver */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 26px; padding: 26px 0 70px; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr); align-items: start; }
+    .col-map {
+      position: sticky;
+      top: calc(var(--controls-h) + 14px);
+      height: calc(100vh - var(--controls-h) - 40px);
+    }
+  }
+
+  /* Map */
+  .mapcard {
+    border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+    background: var(--stone-card); box-shadow: var(--shadow); height: 100%;
+    display: flex; flex-direction: column; min-height: 380px;
+  }
+  .map { flex: 1 1 auto; min-height: 280px; }
+  .map-foot {
+    border-top: 1px solid var(--line-soft); padding: 8px 12px;
+    display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center;
+    background: var(--stone-card); flex-shrink: 0;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); }
+  .legend-item .dot { width: 9px; height: 9px; border-radius: 50%; }
+
+  /* Location button in map footer */
+  .loc-btn {
+    margin-left: auto; flex: 0 0 auto; cursor: pointer; font: inherit; font-size: 12px;
+    border: 1px solid var(--line); background: var(--stone-card); border-radius: 999px;
+    padding: 5px 11px; display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-soft); transition: border-color .15s, color .15s, background .15s;
+  }
+  .loc-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .loc-btn.loc-active { background: #E3F0FF; border-color: #2196F3; color: #1565C0; }
+  .loc-err { font-size: 11px; color: var(--claret); margin-left: auto; max-width: 200px; }
+
+  /* Location marker */
+  .loc-marker { width: 40px; height: 40px; position: relative; pointer-events: none; }
+  .loc-core {
+    width: 16px; height: 16px; background: #2196F3; border-radius: 50%;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    border: 3px solid white; box-shadow: 0 2px 12px rgba(33,150,243,.55); z-index: 2;
+  }
+  .loc-pulse {
+    width: 44px; height: 44px;
+    background: rgba(33,150,243,.18); border: 1.5px solid rgba(33,150,243,.35);
+    border-radius: 50%; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: locpulse 2.2s ease-out infinite;
+  }
+  @keyframes locpulse {
+    0% { transform: translate(-50%,-50%) scale(.35); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+  }
+
+  .map-empty {
+    flex: 1 1 auto; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; padding: 30px 26px; gap: 14px;
+  }
+  .map-empty h3 { font-family: "Libre Caslon Display", serif; font-size: 24px; margin: 0; }
+  .map-empty p { margin: 0; color: var(--ink-soft); max-width: 380px; font-size: 14px; }
+  .token-field { display: flex; gap: 8px; width: 100%; max-width: 420px; }
+  .token-field input {
+    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+    font: inherit; background: var(--stone); color: var(--ink); min-width: 0;
+  }
+
+  /* Sections + cards */
+  .col-list { display: flex; flex-direction: column; gap: 44px; }
+  .section { scroll-margin-top: calc(var(--controls-h) + 24px); }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 4px; }
+  .sec-dot { width: 12px; height: 12px; border-radius: 50%; transform: translateY(1px); }
+  .sec-name { font-family: "Libre Caslon Display", serif; font-size: 26px; margin: 0; }
+  .sec-count { font-size: 12px; color: var(--ink-faint); letter-spacing: .04em; }
+  .sec-blurb { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 16px; max-width: 70ch; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 18px; }
+
+  .card {
+    background: var(--stone-card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px; display: flex; flex-direction: column; gap: 11px;
+    box-shadow: var(--shadow); transition: border-color .18s, transform .18s, box-shadow .18s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card.sel { border-color: var(--claret); box-shadow: 0 0 0 2px color-mix(in srgb, var(--claret) 30%, transparent), var(--shadow); }
+
+  .eyebrow {
+    font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .card-title { font-family: "Libre Caslon Display", serif; font-size: 21px; line-height: 1.12; margin: 0; }
+  .desc { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 11px; color: var(--ink-soft); background: var(--stone-deep);
+    border-radius: 999px; padding: 3px 9px; border: 1px solid var(--line-soft);
+  }
+  .tag.new { background: color-mix(in srgb, var(--brass) 18%, var(--stone-card)); border-color: var(--brass); color: var(--brass); font-weight: 600; }
+
+  .field { font-size: 12.5px; }
+  .field .lbl {
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-faint); display: block; margin-bottom: 3px;
+  }
+  .field .val { color: var(--ink); }
+  .why { color: var(--ink); }
+  .why .val { font-style: italic; }
+  .note {
+    font-size: 12px; color: var(--brass); background: color-mix(in srgb, var(--brass) 10%, transparent);
+    border-left: 3px solid var(--brass); padding: 6px 10px; border-radius: 0 8px 8px 0;
+  }
+
+  /* Card status bar (for agent update result) */
+  .card-status { display: flex; align-items: center; gap: 8px; min-height: 20px; }
+  .saved { font-size: 11.5px; color: var(--thames); font-weight: 600; }
+  .err { font-size: 11.5px; color: var(--claret); }
+
+  .actions { display: flex; gap: 8px; margin-top: 2px; flex-wrap: wrap; }
+  .btn {
+    cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600;
+    border-radius: 999px; padding: 8px 14px; border: 1px solid transparent;
+    display: inline-flex; align-items: center; gap: 7px; transition: background .15s, color .15s, border-color .15s;
+  }
+  .btn:disabled { cursor: default; opacity: .65; }
+  .btn.primary { background: var(--ink); color: var(--stone-card); }
+  .btn.primary:hover:not(:disabled) { background: var(--claret); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn.ghost:hover:not(:disabled) { border-color: var(--ink-faint); }
+  .spinner {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid currentColor; border-right-color: transparent;
+    animation: spin .7s linear infinite; flex: 0 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    border: 1px dashed var(--line); border-radius: var(--radius); padding: 40px 24px;
+    text-align: center; color: var(--ink-soft); background: var(--stone-card);
+  }
+  .empty-state h3 { font-family: "Libre Caslon Display", serif; color: var(--ink); margin: 0 0 6px; }
+
+  .footer { border-top: 1px solid var(--line); padding: 26px 0 50px; color: var(--ink-faint); font-size: 12.5px; }
+  .footer p { margin: 4px 0; }
+
+  /* Mapbox marker + popup */
+  .pin {
+    width: 16px; height: 16px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    border: 2px solid var(--stone-card); box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer;
+  }
+  .pin:hover { filter: brightness(1.12); }
+  .mapboxgl-popup-content {
+    font-family: "Inter", sans-serif; border-radius: 10px; padding: 12px 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  }
+  .pop-eyebrow { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .pop-title { font-family: "Libre Caslon Display", serif; font-size: 17px; margin: 2px 0 4px; color: #211D17; }
+  .pop-why { font-size: 12.5px; color: #534D43; max-width: 220px; }
+
+  /* Best time bar */
+  .besttime { display: flex; flex-direction: column; gap: 5px; }
+  .bt-row { display: flex; align-items: center; gap: 2px; }
+  .bt-cell {
+    flex: 1; height: 22px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    background: var(--stone-deep); color: var(--ink-faint);
+    border: 1px solid var(--line-soft);
+    transition: background .15s, color .15s, border-color .15s;
+    user-select: none; cursor: default;
+  }
+  .bt-cell.on { color: #fff; border-color: transparent; }
+  .bt-note { font-size: 11.5px; color: var(--ink-faint); font-style: italic; line-height: 1.4; }
+
+  /* Photo links */
+  .photo-links { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .photo-link {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+    color: var(--ink-soft); text-decoration: none; border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 11px; background: var(--stone-deep);
+    transition: border-color .15s, color .15s, background .15s; white-space: nowrap;
+  }
+  .photo-link:hover { color: var(--claret); border-color: var(--claret); background: color-mix(in srgb, var(--claret) 6%, var(--stone-card)); }
+  .photo-link svg { flex: 0 0 auto; }
+
+  /* Theme picker */
+  .theme-wrap { position: relative; flex: 0 0 auto; }
+  .theme-btn {
+    cursor: pointer; background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: 999px; height: 36px; padding: 0 13px;
+    display: flex; align-items: center; gap: 7px;
+    color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 500;
+    transition: border-color .15s, color .15s; white-space: nowrap;
+  }
+  .theme-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .theme-panel {
+    position: absolute; right: 0; top: calc(100% + 8px); z-index: 200;
+    background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: 0 12px 40px rgba(33,29,23,.16);
+    padding: 10px; width: 252px; display: flex; flex-direction: column; gap: 2px;
+  }
+  .theme-panel-title {
+    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 6px 6px; font-weight: 600;
+  }
+  .theme-option {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+    border-radius: 9px; cursor: pointer; border: 1.5px solid transparent;
+    transition: background .12s, border-color .12s; background: none;
+    width: 100%; font: inherit; color: var(--ink); text-align: left;
+  }
+  .theme-option:hover { background: var(--stone-deep); }
+  .theme-option.thm-active { border-color: var(--claret); background: color-mix(in srgb, var(--claret) 8%, var(--stone-card)); }
+  .thm-swatches { display: flex; gap: 4px; flex: 0 0 auto; }
+  .thm-swatch { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.12); flex: 0 0 auto; }
+  .thm-info { display: flex; flex-direction: column; gap: 1px; }
+  .thm-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .thm-desc { font-size: 11px; color: var(--ink-faint); }
+
+  /* Settings modal */
+  .settings-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(33,29,23,.45); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .settings-modal {
+    background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: calc(var(--radius) + 4px); box-shadow: 0 24px 64px rgba(33,29,23,.24);
+    width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 0;
+    max-height: calc(100vh - 40px); overflow-y: auto;
+  }
+  .settings-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 22px 16px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--stone-card); z-index: 1;
+  }
+  .settings-title { font-family: "Libre Caslon Display", serif; font-size: 22px; margin: 0; }
+  .settings-close {
+    cursor: pointer; background: var(--stone-deep); border: 1px solid var(--line);
+    border-radius: 50%; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font: inherit; font-size: 18px;
+    transition: background .15s, color .15s;
+  }
+  .settings-close:hover { background: var(--line); color: var(--ink); }
+  .settings-section {
+    padding: 20px 22px; display: flex; flex-direction: column; gap: 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .settings-section:last-of-type { border-bottom: 0; }
+  .settings-label {
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    font-weight: 700; color: var(--ink-faint);
+  }
+  .settings-hint { font-size: 13px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+  .settings-field {
+    display: flex; gap: 6px; align-items: center;
+  }
+  .settings-field input {
+    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px;
+    font: inherit; font-size: 13px; background: var(--stone); color: var(--ink); min-width: 0;
+    font-family: monospace;
+  }
+  .settings-field input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .settings-toggle {
+    cursor: pointer; background: var(--stone-deep); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 12px;
+    color: var(--ink-soft); white-space: nowrap;
+    transition: border-color .15s;
+  }
+  .settings-toggle:hover { border-color: var(--ink-faint); }
+  .settings-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .settings-saved { font-size: 12px; color: var(--thames); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .settings-foot {
+    padding: 14px 22px 20px; font-size: 11.5px; color: var(--ink-faint); line-height: 1.5;
+  }
+  .gear-btn {
+    cursor: pointer; background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: 50%; width: 36px; height: 36px; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); transition: border-color .15s, color .15s;
+  }
+  .gear-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition: none !important; }
+  }
+
+</style>
 </head>
 <body>
-    <h1>London Locales & Iconic Destinations</h1>
-    
-    <div class="location">
-        <h2>1. Westminster</h2>
-        <p>The political heart of London. Home to the Houses of Parliament, Big Ben, and the historic Westminster Abbey.</p>
-    </div>
+<div id="root"></div>
 
-    <div class="location">
-        <h2>2. Covent Garden</h2>
-        <p>A vibrant hub in the West End famous for its historic market, street performers, open-air cafes, and world-class theatres.</p>
-    </div>
+<script type="text/babel" data-presets="react">
 
-    <div class="location">
-        <h2>3. South Bank</h2>
-        <p>Stretching along the River Thames, this cultural district features the London Eye, Tate Modern, and the National Theatre.</p>
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+/* ------------------------------------------------------------------ *
+ * Add your Mapbox public token here to make the live map appear on
+ * load. You can also enter it in Settings (gear icon) at any time.
+ * ------------------------------------------------------------------ */
+const MAPBOX_TOKEN = "";
+
+/* ------------------------------------------------------------------ *
+ * Client-side persistence via namespaced localStorage keys.
+ * All reads/writes are try-catched so restricted storage never breaks the app.
+ * ------------------------------------------------------------------ */
+const LS_TOKEN        = "lfg:mapbox_token";
+const LS_THEME        = "lfg:theme_id";
+const LS_ANTHROPIC    = "lfg:anthropic_key";
+
+function lsGet(key) { try { return localStorage.getItem(key) || null; } catch (_) { return null; } }
+function lsSet(key, value) { try { localStorage.setItem(key, value); return true; } catch (_) { return false; } }
+function lsDel(key) { try { localStorage.removeItem(key); } catch (_) {} }
+
+/* ------------------------------------------------------------------ *
+ * Themes - each defines a full set of CSS custom properties.
+ * Apply a theme by calling applyTheme(themeId).
+ * ------------------------------------------------------------------ */
+const THEMES = [
+  {
+    id: "portland", name: "Portland Stone", desc: "Classic warm parchment",
+    palette: ["#ECE6DA","#7C2A33","#8C6E2B"],
+    mapStyle: "mapbox://styles/mapbox/light-v11",
+    vars: { "--stone":"#ECE6DA","--stone-card":"#F6F2E9","--stone-deep":"#E1D9C8",
+      "--ink":"#211D17","--ink-soft":"#534D43","--ink-faint":"#8A8273",
+      "--line":"#D5CCBA","--line-soft":"#E3DBCB",
+      "--claret":"#7C2A33","--claret-deep":"#5E1E26","--brass":"#8C6E2B","--thames":"#2C5862" },
+  },
+  {
+    id: "night", name: "Night London", desc: "Dark city after dark",
+    palette: ["#151923","#5B8DDE","#C8A84B"],
+    mapStyle: "mapbox://styles/mapbox/dark-v10",
+    vars: { "--stone":"#151923","--stone-card":"#1E2535","--stone-deep":"#252D40",
+      "--ink":"#E8EAF0","--ink-soft":"#9CAABF","--ink-faint":"#545F72",
+      "--line":"#2A3248","--line-soft":"#222B3C",
+      "--claret":"#5B8DDE","--claret-deep":"#3D6ABE","--brass":"#C8A84B","--thames":"#3BBFB5" },
+  },
+  {
+    id: "thames", name: "Thames Blue", desc: "Steel and river tones",
+    palette: ["#E8EFF5","#1A5C8A","#C17F40"],
+    mapStyle: "mapbox://styles/mapbox/light-v11",
+    vars: { "--stone":"#E8EFF5","--stone-card":"#F2F6FA","--stone-deep":"#D6E2EE",
+      "--ink":"#182233","--ink-soft":"#3A4E64","--ink-faint":"#7290A8",
+      "--line":"#BCCEDE","--line-soft":"#D0DDE8",
+      "--claret":"#1A5C8A","--claret-deep":"#0F3F60","--brass":"#C17F40","--thames":"#1F9088" },
+  },
+  {
+    id: "hydepark", name: "Hyde Park", desc: "Garden greens and earth",
+    palette: ["#EBF0E7","#2E7537","#8C6E2B"],
+    mapStyle: "mapbox://styles/mapbox/light-v11",
+    vars: { "--stone":"#EBF0E7","--stone-card":"#F3F7F0","--stone-deep":"#DAE4D4",
+      "--ink":"#1A2916","--ink-soft":"#364E2E","--ink-faint":"#688060",
+      "--line":"#C0D4B8","--line-soft":"#D0E0C8",
+      "--claret":"#2E7537","--claret-deep":"#1E5225","--brass":"#8C6E2B","--thames":"#206058" },
+  },
+  {
+    id: "artdeco", name: "Art Deco", desc: "Gold, ivory and black",
+    palette: ["#F5F0E4","#B89210","#1A1610"],
+    mapStyle: "mapbox://styles/mapbox/light-v11",
+    vars: { "--stone":"#F5F0E4","--stone-card":"#FAFAF2","--stone-deep":"#EBE4CE",
+      "--ink":"#1A1610","--ink-soft":"#46402C","--ink-faint":"#7A7060",
+      "--line":"#D8CCB0","--line-soft":"#E6DCCA",
+      "--claret":"#B89210","--claret-deep":"#8A6D08","--brass":"#B89210","--thames":"#2C5862" },
+  },
+  {
+    id: "slate", name: "Slate", desc: "Cool and modern minimal",
+    palette: ["#F0F1F4","#3F6FAD","#7A6B48"],
+    mapStyle: "mapbox://styles/mapbox/light-v11",
+    vars: { "--stone":"#F0F1F4","--stone-card":"#F8F9FB","--stone-deep":"#E2E4EA",
+      "--ink":"#18192A","--ink-soft":"#484C5E","--ink-faint":"#808494",
+      "--line":"#CACFE0","--line-soft":"#D8DCE8",
+      "--claret":"#3F6FAD","--claret-deep":"#2A4F84","--brass":"#7A6B48","--thames":"#2A6860" },
+  },
+];
+
+const DEFAULT_THEME = THEMES[0];
+
+function applyTheme(t) {
+  const root = document.documentElement.style;
+  Object.entries(t.vars).forEach(([k, v]) => root.setProperty(k, v));
+}
+
+const CATEGORIES = [
+  { key: "royal",      name: "Royal London",            color: "#7C2A33", blurb: "Palaces, parades and the homes of the crown." },
+  { key: "history",    name: "History and Heritage",    color: "#8C6E2B", blurb: "Fortresses, ships and the deep story of the city." },
+  { key: "museums",    name: "Museums and Galleries",   color: "#2C5862", blurb: "World treasures and great art, much of it free." },
+  { key: "landmarks",  name: "Landmarks and Architecture", color: "#3F4654", blurb: "The buildings and bridges that define the skyline." },
+  { key: "parks",      name: "Parks and Nature",        color: "#4F6B43", blurb: "Green escapes, royal gardens and open spaces." },
+  { key: "markets",    name: "Markets and Shopping",    color: "#9C5A2B", blurb: "Food, flowers, antiques and famous shops." },
+  { key: "views",      name: "Views and Skyline",       color: "#5A4A7A", blurb: "High decks and gentle rides for the best views." },
+  { key: "faith",      name: "Faith and Worship",       color: "#6B5840", blurb: "Cathedrals, mosques and temples open to all." },
+  { key: "theatre",    name: "Theatre and Entertainment", color: "#B23A48", blurb: "Live shows, music and a world-class stage scene." },
+  { key: "areas",      name: "Neighbourhoods",          color: "#2F6F6A", blurb: "Distinct quarters with their own character." },
+  { key: "family",     name: "Family and Fun",          color: "#C77A2B", blurb: "Animals, waxworks and treats for younger visitors." },
+  { key: "events",     name: "Events and Festivals",    color: "#8E3B6B", blurb: "Seasonal highlights worth planning a trip around." },
+];
+const CAT = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
+
+
+const RAW = [
+  // Royal London
+  { id:"buckingham", name:"Buckingham Palace", cat:"royal", lat:51.5014, lng:-0.1419,
+    desc:"The official London home of the King and the most famous royal address in the country. In summer the lavish State Rooms open to visitors.",
+    features:["Royal","Iconic","Paid entry","Booking advised","Great for photos"],
+    near:["St James's Park","The Royal Mews","Green Park"],
+    why:"It is the heart of British royal life and a true London icon." },
+  { id:"royalmews", name:"The Royal Mews", cat:"royal", lat:51.4990, lng:-0.1456,
+    desc:"The working stables of the Royal Household, home to the horses and grand state coaches used on royal occasions.",
+    features:["Royal","Family friendly","Paid entry","Good in rain"],
+    near:["Buckingham Palace","St James's Park","Victoria"],
+    why:"You can see the dazzling Gold State Coach used at coronations up close." },
+  { id:"stjamespalace", name:"St James's Palace", cat:"royal", lat:51.5048, lng:-0.1383,
+    desc:"A striking Tudor palace built for Henry VIII and still an official royal residence. The red brick gatehouse is a lovely sight.",
+    features:["Royal","Architecture","Free entry","Outdoor","Great for photos"],
+    near:["St James's Park","The Mall","Green Park"],
+    why:"It is one of the oldest royal palaces in London and full of history." },
+  { id:"kensingtonpalace", name:"Kensington Palace", cat:"royal", lat:51.5050, lng:-0.1877,
+    desc:"An elegant palace set in Kensington Gardens, home to royals for more than 300 years and once the residence of Queen Victoria.",
+    features:["Royal","Paid entry","Family friendly","Good in rain"],
+    near:["Kensington Gardens","Hyde Park","Royal Albert Hall"],
+    why:"It mixes royal history with beautiful gardens in one visit." },
+  { id:"hamptoncourt", name:"Hampton Court Palace", cat:"royal", lat:51.4036, lng:-0.3377,
+    desc:"A vast Tudor palace by the river, loved by Henry VIII. Highlights include the Great Hall, the kitchens and the famous hedge maze.",
+    features:["Royal","Family friendly","Outdoor","Paid entry","On the Thames"],
+    near:["Bushy Park","Kingston","Richmond"],
+    why:"It is one of the finest Tudor buildings in the world and great for all ages." },
+  { id:"banqueting", name:"Banqueting House", cat:"royal", lat:51.5045, lng:-0.1262,
+    desc:"The only surviving part of the old Palace of Whitehall, famous for its ceiling painted by Rubens.",
+    features:["Royal","Indoor","Paid entry","Good in rain","Architecture"],
+    near:["Horse Guards Parade","Whitehall","Trafalgar Square"],
+    why:"The painted ceiling is a rare masterpiece you can admire from below." },
+  { id:"horseguards", name:"Horse Guards Parade", cat:"royal", lat:51.5048, lng:-0.1276,
+    desc:"A grand parade ground behind Whitehall, guarded by mounted soldiers of the Household Cavalry.",
+    features:["Royal","Free entry","Outdoor","Great for photos"],
+    near:["St James's Park","Banqueting House","Whitehall"],
+    why:"You can watch the mounted guards and their daily ceremonies for free." },
+
+  // History and Heritage
+  { id:"tower", name:"The Tower of London", cat:"history", lat:51.5081, lng:-0.0759,
+    desc:"A mighty riverside fortress nearly 1,000 years old that has been a castle, a prison and a royal treasure house. It guards the Crown Jewels.",
+    features:["World Heritage","Royal","Paid entry","Family friendly","On the Thames","Booking advised"],
+    near:["Tower Bridge","St Katharine Docks","The Gherkin"],
+    why:"Few places pack in so much history, drama and treasure in one visit." },
+  { id:"towerbridge", name:"Tower Bridge", cat:"history", lat:51.5055, lng:-0.0754,
+    desc:"London's most famous bridge, with two tall towers and a road that lifts to let ships pass. A high glass walkway gives river views.",
+    features:["Iconic","On the Thames","Paid entry","Viewpoint","Great for photos"],
+    near:["The Tower of London","HMS Belfast","Shad Thames"],
+    why:"Walking the glass floor high above the Thames is a real thrill." },
+  { id:"parliament", name:"Houses of Parliament", cat:"history", lat:51.4995, lng:-0.1248,
+    desc:"The home of the UK Parliament, a grand Gothic palace beside the Thames. Tours let you walk through the historic halls and chambers.",
+    features:["World Heritage","Architecture","Paid entry","Booking advised","On the Thames"],
+    near:["Big Ben","Westminster Abbey","London Eye"],
+    why:"It is the centre of British politics and a stunning piece of architecture." },
+  { id:"bigben", name:"Big Ben (Elizabeth Tower)", cat:"history", lat:51.5007, lng:-0.1246,
+    desc:"The famous clock tower at the north end of the Houses of Parliament, known around the world for its deep bell.",
+    features:["Iconic","Great for photos","Booking advised","Architecture"],
+    near:["Houses of Parliament","Westminster Abbey","London Eye"],
+    why:"It is the sound and sight that says London like nothing else." },
+  { id:"churchill", name:"Churchill War Rooms", cat:"history", lat:51.5023, lng:-0.1291,
+    desc:"The secret underground bunker where Winston Churchill ran Britain's war effort, kept just as it was left in 1945.",
+    features:["Paid entry","Indoor","Good in rain","Family friendly","Booking advised"],
+    near:["St James's Park","Westminster Abbey","Horse Guards Parade"],
+    why:"Standing in the real wartime bunker brings history vividly to life." },
+  { id:"hmsbelfast", name:"HMS Belfast", cat:"history", lat:51.5065, lng:-0.0810,
+    desc:"A large Second World War warship now moored on the Thames as a floating museum, with nine decks to explore.",
+    features:["Family friendly","Paid entry","On the Thames","Good in rain"],
+    near:["Tower Bridge","Borough Market","The Shard"],
+    why:"Climbing through a real warship is a hands-on adventure for all ages." },
+  { id:"ornc", name:"Old Royal Naval College, Greenwich", cat:"history", lat:51.4834, lng:-0.0077,
+    desc:"A breathtaking pair of domed buildings by Sir Christopher Wren. The grounds are free to wander, and the dazzling Painted Hall is open with a ticket.",
+    features:["World Heritage","Architecture","On the Thames","Great for photos","Free entry"],
+    near:["Cutty Sark","Royal Observatory Greenwich","Greenwich Park"],
+    why:"The Painted Hall is one of the most spectacular rooms in the country." },
+  { id:"cuttysark", name:"Cutty Sark", cat:"history", lat:51.4827, lng:-0.0096,
+    desc:"A beautifully restored 19th century tea clipper, once one of the fastest sailing ships in the world. You can even stand beneath the hull.",
+    features:["Family friendly","Paid entry","On the Thames","Good in rain"],
+    near:["Old Royal Naval College, Greenwich","Greenwich Park","Royal Observatory Greenwich"],
+    why:"It is a rare chance to see and touch a famous historic sailing ship." },
+  { id:"observatory", name:"Royal Observatory Greenwich", cat:"history", lat:51.4769, lng:-0.0005,
+    desc:"The home of Greenwich Mean Time and the Prime Meridian line, where east meets west, with a planetarium on site.",
+    features:["Family friendly","Paid entry","Viewpoint","Great for photos"],
+    near:["Greenwich Park","Cutty Sark","Old Royal Naval College, Greenwich"],
+    why:"You can stand on the line that sets the world's clocks." },
+  { id:"londonwall", name:"London Wall (Roman London)", cat:"history", lat:51.5170, lng:-0.0937,
+    desc:"Surviving sections of the wall the Romans built around Londinium almost 2,000 years ago, sitting free to view among modern towers.",
+    features:["Free entry","Outdoor","Quiet escape"],
+    near:["Barbican","St Paul's Cathedral","Liverpool Street"],
+    why:"It is the oldest visible piece of London, hidden in plain sight." },
+
+  // Museums and Galleries
+  { id:"britishmuseum", name:"The British Museum", cat:"museums", lat:51.5194, lng:-0.1270,
+    desc:"One of the greatest museums on earth, holding treasures from every age, including the Rosetta Stone, all under a soaring glass roof.",
+    features:["Free entry","Family friendly","Indoor","Good in rain","Booking advised"],
+    near:["Covent Garden","Soho","Russell Square"],
+    why:"It holds world history under one roof and entry is free." },
+  { id:"nhm", name:"Natural History Museum", cat:"museums", lat:51.4967, lng:-0.1764,
+    desc:"A cathedral-like museum filled with dinosaurs, gems, and a giant blue whale skeleton hanging in the main hall.",
+    features:["Free entry","Family friendly","Indoor","Good in rain","Architecture"],
+    near:["Science Museum","Victoria and Albert Museum","Hyde Park"],
+    why:"The dinosaurs and the grand hall delight visitors of every age." },
+  { id:"sciencemuseum", name:"Science Museum", cat:"museums", lat:51.4978, lng:-0.1745,
+    desc:"A hands-on museum about science, space and invention, with rockets, engines and interactive galleries.",
+    features:["Free entry","Family friendly","Indoor","Good in rain"],
+    near:["Natural History Museum","Victoria and Albert Museum","Royal Albert Hall"],
+    why:"It makes science fun and is free to explore." },
+  { id:"vanda", name:"Victoria and Albert Museum", cat:"museums", lat:51.4966, lng:-0.1722,
+    desc:"The world's leading museum of art, design and fashion. The pretty courtyard cafe is a lovely place to rest.",
+    features:["Free entry","Indoor","Good in rain","Food and drink","Architecture"],
+    near:["Natural History Museum","Science Museum","Harrods"],
+    why:"It is a feast for anyone who loves art, design or fashion." },
+  { id:"nationalgallery", name:"The National Gallery", cat:"museums", lat:51.5089, lng:-0.1283,
+    desc:"Home to a wonderful collection of European paintings on Trafalgar Square, with works by Van Gogh, Monet and Leonardo, all free.",
+    features:["Free entry","Indoor","Good in rain","Great for photos"],
+    near:["Trafalgar Square","Covent Garden","Soho"],
+    why:"Some of the world's most loved paintings, free to enjoy." },
+  { id:"npg", name:"National Portrait Gallery", cat:"museums", lat:51.5094, lng:-0.1281,
+    desc:"A gallery of faces telling the story of Britain, from kings and queens to pop stars, with a bright new look after a major refresh.",
+    features:["Free entry","Indoor","Good in rain"],
+    near:["The National Gallery","Trafalgar Square","Leicester Square"],
+    why:"It is a fascinating who's who of British history and culture." },
+  { id:"tatemodern", name:"Tate Modern", cat:"museums", lat:51.5076, lng:-0.0994,
+    desc:"A huge modern art gallery inside a former power station on the river, with free displays and a giant Turbine Hall.",
+    features:["Free entry","Indoor","On the Thames","Viewpoint","Good in rain"],
+    near:["Shakespeare's Globe","Millennium Bridge","St Paul's Cathedral"],
+    why:"Bold modern art in a striking building, free to enter." },
+  { id:"tatebritain", name:"Tate Britain", cat:"museums", lat:51.4911, lng:-0.1278,
+    desc:"A calm and elegant gallery showing 500 years of British art, including the world's finest collection of Turner paintings.",
+    features:["Free entry","Indoor","On the Thames","Quiet escape","Good in rain"],
+    near:["Houses of Parliament","Westminster","Pimlico"],
+    why:"It is the best place to follow the story of British art." },
+  { id:"iwm", name:"Imperial War Museum", cat:"museums", lat:51.4956, lng:-0.1086,
+    desc:"A moving museum about conflict and its effect on people's lives, from the World Wars to today, with admired Holocaust galleries.",
+    features:["Free entry","Indoor","Good in rain","Family friendly"],
+    near:["South Bank","Borough","Lambeth North"],
+    why:"It tells difficult history with great care and clarity." },
+  { id:"soane", name:"Sir John Soane's Museum", cat:"museums", lat:51.5169, lng:-0.1175,
+    desc:"The quirky former home of an architect, packed from floor to ceiling with art, sculpture and curiosities.",
+    features:["Free entry","Indoor","Quiet escape","Good in rain","Booking advised"],
+    near:["Covent Garden","Holborn","The British Museum"],
+    why:"It is one of London's most surprising and magical small museums." },
+  { id:"wallace", name:"The Wallace Collection", cat:"museums", lat:51.5174, lng:-0.1530,
+    desc:"A grand townhouse filled with fine paintings, armour and French furniture, with a delightful courtyard cafe.",
+    features:["Free entry","Indoor","Food and drink","Quiet escape"],
+    near:["Oxford Street","Marylebone","Madame Tussauds"],
+    why:"It is a hidden gem of old master paintings and free to visit." },
+  { id:"courtauld", name:"The Courtauld Gallery", cat:"museums", lat:51.5111, lng:-0.1173,
+    desc:"A jewel of a gallery at Somerset House with famous Impressionist paintings by Van Gogh, Cezanne and Manet.",
+    features:["Paid entry","Indoor","Good in rain","Architecture"],
+    near:["Covent Garden","The Strand","Soho"],
+    why:"Small but stunning, with some of the most loved paintings in Europe." },
+  { id:"vandaeast", name:"V and A East Museum, Stratford", cat:"museums", lat:51.5400, lng:-0.0166,
+    desc:"A brand new sister to the V and A, opened in 2026 in the Olympic Park, bringing world-class design and culture to east London.",
+    features:["Newly opened","Free entry","Indoor","Family friendly","Good in rain"],
+    near:["Queen Elizabeth Olympic Park","ArcelorMittal Orbit","Westfield Stratford"],
+    why:"It is one of the most exciting new museums to open in London." },
+  { id:"londonmuseum", name:"London Museum (Smithfield)", cat:"museums", lat:51.5193, lng:-0.1010,
+    desc:"The new home of London's own museum, opening in the historic Smithfield market buildings towards the end of 2026, telling the whole story of the city.",
+    features:["Newly opened","Free entry","Indoor","Family friendly"],
+    near:["Barbican","St Paul's Cathedral","Farringdon"],
+    why:"It is the place to understand London itself, in a beautiful new setting." },
+
+  // Landmarks and Architecture
+  { id:"shard", name:"The Shard", cat:"landmarks", lat:51.5045, lng:-0.0865,
+    desc:"Western Europe's tallest building, a glass spire whose viewing decks near the top offer the highest views in the city.",
+    features:["Iconic","Viewpoint","Paid entry","Booking advised","Great for photos"],
+    near:["Borough Market","London Bridge","HMS Belfast"],
+    why:"It gives the highest and widest view across all of London." },
+  { id:"eye", name:"London Eye", cat:"landmarks", lat:51.5033, lng:-0.1196,
+    desc:"A giant observation wheel on the South Bank that turns slowly to show the whole city from glass capsules.",
+    features:["Iconic","Viewpoint","Paid entry","Family friendly","On the Thames","Booking advised"],
+    near:["Houses of Parliament","Big Ben (Elizabeth Tower)","Southbank Centre and National Theatre"],
+    why:"A gentle ride with one of the best views in London." },
+  { id:"stpauls", name:"St Paul's Cathedral", cat:"landmarks", lat:51.5138, lng:-0.0984,
+    desc:"Sir Christopher Wren's masterpiece, crowned by a vast dome that has stood over the city for 300 years. You can climb to the galleries for fine views.",
+    features:["Iconic","Paid entry","Architecture","Viewpoint","Great for photos"],
+    near:["Millennium Bridge","Tate Modern","The Gherkin"],
+    why:"The dome is a symbol of London and the climb is well worth it." },
+  { id:"gherkin", name:"The Gherkin", cat:"landmarks", lat:51.5145, lng:-0.0803,
+    desc:"A curved glass tower shaped like a pickle that has become a star of the city skyline, among the gleaming towers of the financial district.",
+    features:["Iconic","Architecture","Great for photos"],
+    near:["Leadenhall Market","The Tower of London","Sky Garden"],
+    why:"It is one of the most playful and recognisable buildings in London." },
+  { id:"battersea", name:"Battersea Power Station", cat:"landmarks", lat:51.4817, lng:-0.1444,
+    desc:"A famous old power station with four white chimneys, reborn as a lively place to shop, eat and relax by the river, with a glass lift up a chimney.",
+    features:["Architecture","Shopping","Food and drink","On the Thames","Viewpoint"],
+    near:["Battersea Park","Nine Elms","Pimlico"],
+    why:"A beloved landmark given a stylish new life by the Thames." },
+  { id:"trafalgar", name:"Trafalgar Square", cat:"landmarks", lat:51.5079, lng:-0.1281,
+    desc:"London's great central square, watched over by Nelson's Column and its four bronze lions, lively with events and street performers.",
+    features:["Free entry","Iconic","Outdoor","Great for photos","Family friendly"],
+    near:["The National Gallery","Covent Garden","Whitehall"],
+    why:"It is the buzzing heart of central London and free to enjoy." },
+  { id:"millennium", name:"Millennium Bridge", cat:"landmarks", lat:51.5095, lng:-0.0985,
+    desc:"A sleek steel footbridge linking St Paul's with Tate Modern across the Thames, with one of the best views of the cathedral.",
+    features:["Free entry","On the Thames","Great for photos","Outdoor"],
+    near:["St Paul's Cathedral","Tate Modern","Shakespeare's Globe"],
+    why:"The view of St Paul's from the bridge is unforgettable." },
+
+  // Parks and Nature
+  { id:"hydepark", name:"Hyde Park", cat:"parks", lat:51.5073, lng:-0.1657,
+    desc:"One of London's largest and best loved parks, with a boating lake, gardens and wide green lawns for walks, picnics and summer concerts.",
+    features:["Free entry","Outdoor","Family friendly","Quiet escape"],
+    near:["Kensington Gardens","Harrods","Buckingham Palace"],
+    why:"It is a huge green escape right in the centre of the city." },
+  { id:"kensingtongardens", name:"Kensington Gardens", cat:"parks", lat:51.5070, lng:-0.1790,
+    desc:"A graceful royal park next to Hyde Park, with the Italian Gardens, the Albert Memorial and a children's playground.",
+    features:["Free entry","Outdoor","Family friendly","Quiet escape"],
+    near:["Kensington Palace","Hyde Park","Royal Albert Hall"],
+    why:"It is elegant, peaceful and full of royal touches." },
+  { id:"regentspark", name:"Regent's Park", cat:"parks", lat:51.5313, lng:-0.1570,
+    desc:"A beautiful park with rose gardens, an open-air theatre and London Zoo, close to the famous skyline view from Primrose Hill.",
+    features:["Free entry","Outdoor","Family friendly","Quiet escape"],
+    near:["London Zoo (ZSL)","Primrose Hill","Camden Market"],
+    why:"Its rose gardens are among the prettiest spots in London." },
+  { id:"stjamespark", name:"St James's Park", cat:"parks", lat:51.5025, lng:-0.1340,
+    desc:"The oldest royal park, set between Buckingham Palace and Whitehall, with a lake full of birds including pelicans.",
+    features:["Free entry","Outdoor","Family friendly","Great for photos","Quiet escape"],
+    near:["Buckingham Palace","Horse Guards Parade","Westminster Abbey"],
+    why:"It offers fairy-tale views and friendly wildlife in the heart of town." },
+  { id:"richmondpark", name:"Richmond Park", cat:"parks", lat:51.4429, lng:-0.2733,
+    desc:"London's largest park, a wild and open space where herds of deer roam freely among woods, ponds and grand views.",
+    features:["Free entry","Outdoor","Quiet escape","Family friendly"],
+    near:["Richmond","Kew Gardens","Wimbledon"],
+    why:"You can see wild deer just a short journey from the centre." },
+  { id:"hampstead", name:"Hampstead Heath", cat:"parks", lat:51.5608, lng:-0.1629,
+    desc:"A large, hilly area of meadows and woods in north London, with swimming ponds and the wide skyline view from Parliament Hill.",
+    features:["Free entry","Outdoor","Viewpoint","Quiet escape"],
+    near:["Hampstead Village","Highgate","Kenwood House"],
+    why:"Its wild paths and skyline view feel a world away from the busy city." },
+  { id:"kew", name:"Kew Gardens", cat:"parks", lat:51.4787, lng:-0.2956,
+    desc:"A world-famous garden with glasshouses, a treetop walkway and thousands of plants from around the globe.",
+    features:["World Heritage","Paid entry","Outdoor","Family friendly","Quiet escape"],
+    near:["Richmond","Richmond Park","Kew"],
+    why:"It is a stunning garden and a treasure of the natural world." },
+  { id:"greenwichpark", name:"Greenwich Park", cat:"parks", lat:51.4769, lng:-0.0015,
+    desc:"A royal park on a hill above the river, giving classic views across to the towers of Canary Wharf.",
+    features:["Free entry","Outdoor","Viewpoint","Family friendly"],
+    near:["Royal Observatory Greenwich","Cutty Sark","Old Royal Naval College, Greenwich"],
+    why:"The view from the hill is one of the finest in London." },
+  { id:"primrose", name:"Primrose Hill", cat:"parks", lat:51.5388, lng:-0.1597,
+    desc:"A small grassy hill north of Regent's Park, loved for its postcard view of the whole London skyline, especially at sunset.",
+    features:["Free entry","Outdoor","Viewpoint","Great for photos","Quiet escape"],
+    near:["Regent's Park","Camden Market","London Zoo (ZSL)"],
+    why:"It offers one of the best free skyline views in the city." },
+
+  // Markets and Shopping
+  { id:"borough", name:"Borough Market", cat:"markets", lat:51.5055, lng:-0.0909,
+    desc:"A famous food market near London Bridge, packed with stalls of cheese, bread, cakes and street food from around the world.",
+    features:["Free entry","Food and drink","Family friendly","Good in rain"],
+    near:["The Shard","Southwark Cathedral","HMS Belfast"],
+    why:"It is the best place in London to taste and graze your way around." },
+  { id:"camden", name:"Camden Market", cat:"markets", lat:51.5414, lng:-0.1460,
+    desc:"A buzzing, edgy market by the canal, full of vintage clothes, crafts, music and global street food.",
+    features:["Free entry","Shopping","Food and drink","Family friendly"],
+    near:["Regent's Park","Primrose Hill","London Zoo (ZSL)"],
+    why:"Its lively mix of fashion, food and music is great fun to explore." },
+  { id:"portobello", name:"Portobello Road Market", cat:"markets", lat:51.5170, lng:-0.2059,
+    desc:"A long, lively street market in pretty Notting Hill, famous for antiques, fashion and bric-a-brac. Saturday is the biggest day.",
+    features:["Free entry","Shopping","Outdoor","Great for photos"],
+    near:["Notting Hill","Holland Park","Kensington Gardens"],
+    why:"It is the home of antiques and one of London's most charming streets." },
+  { id:"covent", name:"Covent Garden", cat:"markets", lat:51.5123, lng:-0.1226,
+    desc:"A handsome old market hall surrounded by shops, cafes and street performers, with music and magic on show all day.",
+    features:["Free entry","Shopping","Food and drink","Family friendly","Architecture"],
+    near:["The National Gallery","Soho","London Transport Museum"],
+    why:"It blends shopping, dining and free street shows in one lovely spot." },
+  { id:"spitalfields", name:"Old Spitalfields Market", cat:"markets", lat:51.5194, lng:-0.0754,
+    desc:"A covered market in the trendy east end, with stalls of fashion, art, vintage finds and food from independent makers.",
+    features:["Free entry","Shopping","Food and drink","Good in rain"],
+    near:["Brick Lane","Shoreditch","Liverpool Street"],
+    why:"It is a stylish hub for independent design and great food." },
+  { id:"columbia", name:"Columbia Road Flower Market", cat:"markets", lat:51.5290, lng:-0.0686,
+    desc:"A narrow east London street that bursts into colour every Sunday with flowers and plants, lined with little shops and cafes.",
+    features:["Free entry","Outdoor","Great for photos","Food and drink"],
+    near:["Brick Lane","Shoreditch","Old Spitalfields Market"],
+    why:"On a Sunday morning it is the prettiest street in London." },
+  { id:"bricklane", name:"Brick Lane", cat:"markets", lat:51.5215, lng:-0.0717,
+    desc:"A vibrant east London street known for curry houses, vintage shops, bagels and bold street art, with a busy Sunday market.",
+    features:["Free entry","Food and drink","Shopping","Great for photos"],
+    near:["Old Spitalfields Market","Shoreditch","Columbia Road Flower Market"],
+    why:"It is the place for curry, bagels, vintage finds and street art." },
+  { id:"harrods", name:"Harrods", cat:"markets", lat:51.4994, lng:-0.1632,
+    desc:"The most famous department store in the world, a vast and grand shop in Knightsbridge whose food halls are a sight to behold.",
+    features:["Free entry","Shopping","Indoor","Good in rain","Food and drink"],
+    near:["Victoria and Albert Museum","Hyde Park","Sloane Street"],
+    why:"Even just to look around, it is a true London experience." },
+  { id:"leadenhall", name:"Leadenhall Market", cat:"markets", lat:51.5128, lng:-0.0837,
+    desc:"A beautiful covered Victorian market with painted ironwork and cobbled lanes, hidden among the city's towers and known from Harry Potter films.",
+    features:["Free entry","Architecture","Food and drink","Great for photos","Good in rain"],
+    near:["The Gherkin","The Tower of London","Sky Garden"],
+    why:"Its painted arcades are gorgeous and full of charm." },
+
+  // Views and Skyline
+  { id:"skygarden", name:"Sky Garden", cat:"views", lat:51.5111, lng:-0.0837,
+    desc:"A lush indoor garden at the top of a city tower, with free views across London through huge glass walls. Book a free ticket in advance.",
+    features:["Free entry","Viewpoint","Indoor","Booking advised","Great for photos"],
+    near:["The Gherkin","The Tower of London","Leadenhall Market"],
+    why:"It gives a high, wide view of London for free." },
+  { id:"horizon22", name:"Horizon 22", cat:"views", lat:51.5138, lng:-0.0830,
+    desc:"London's highest free viewing gallery, on the 58th floor of a city skyscraper. Book ahead and enjoy huge views with no charge.",
+    features:["Free entry","Viewpoint","Indoor","Booking advised","Great for photos"],
+    near:["The Gherkin","Leadenhall Market","Sky Garden"],
+    why:"It is the highest free view in the city and a real find." },
+  { id:"orbit", name:"ArcelorMittal Orbit", cat:"views", lat:51.5386, lng:-0.0125,
+    desc:"A bright red sculpture and tower in the Olympic Park, home to the world's longest tunnel slide. Take in the view, then whoosh down.",
+    features:["Family friendly","Paid entry","Viewpoint","Great for photos"],
+    near:["V and A East Museum, Stratford","Queen Elizabeth Olympic Park","Westfield Stratford"],
+    why:"You get a view and the world's longest tunnel slide in one go." },
+  { id:"cablecar", name:"IFS Cloud Cable Car", cat:"views", lat:51.5033, lng:0.0083,
+    desc:"A cable car that glides high over the Thames in east London, giving fine views of the river and the O2.",
+    features:["Family friendly","Paid entry","On the Thames","Viewpoint","Great for photos"],
+    near:["The O2","Royal Docks","Greenwich"],
+    why:"It is a low-cost way to float above the river with a great view." },
+
+  // Faith and Worship
+  { id:"abbey", name:"Westminster Abbey", cat:"faith", lat:51.4994, lng:-0.1273,
+    desc:"A magnificent royal church where kings and queens have been crowned for almost 1,000 years, and where many famous figures are buried.",
+    features:["World Heritage","Royal","Paid entry","Architecture","Booking advised"],
+    near:["Houses of Parliament","Big Ben (Elizabeth Tower)","St James's Park"],
+    why:"It is the setting for coronations and a place of deep history." },
+  { id:"westminstercathedral", name:"Westminster Cathedral", cat:"faith", lat:51.4962, lng:-0.1399,
+    desc:"The chief Catholic church in England, built in a striking red and white striped style, with a lift up the tall bell tower for a view.",
+    features:["Free entry","Architecture","Viewpoint","Quiet escape","Good in rain"],
+    near:["Westminster Abbey","Victoria","St James's Park"],
+    why:"Its bold design and peaceful interior are a surprise to many." },
+  { id:"southwark", name:"Southwark Cathedral", cat:"faith", lat:51.5061, lng:-0.0900,
+    desc:"A lovely old cathedral tucked beside Borough Market, with parts dating back many centuries. A calm stop on the south bank.",
+    features:["Free entry","Architecture","Quiet escape","Good in rain"],
+    near:["Borough Market","The Shard","London Bridge"],
+    why:"It is a peaceful, historic haven next to a busy market." },
+  { id:"neasden", name:"BAPS Shri Swaminarayan Mandir", cat:"faith", lat:51.5536, lng:-0.2614,
+    desc:"A stunning Hindu temple in north-west London, carved from marble and limestone entirely by hand. A place of worship and a true work of art.",
+    features:["Free entry","Architecture","Great for photos","Quiet escape"],
+    near:["Wembley Stadium","Neasden","Brent Cross"],
+    why:"Its hand-carved stonework is breathtaking and open to all." },
+  { id:"centralmosque", name:"London Central Mosque", cat:"faith", lat:51.5256, lng:-0.1659,
+    desc:"A graceful mosque with a golden dome beside Regent's Park, welcoming visitors of all backgrounds to its calm prayer hall.",
+    features:["Free entry","Architecture","Quiet escape"],
+    near:["Regent's Park","Madame Tussauds","Marylebone"],
+    why:"It offers a warm welcome and a peaceful, beautiful space." },
+
+  // Theatre and Entertainment
+  { id:"westend", name:"West End Theatres", cat:"theatre", lat:51.5117, lng:-0.1300,
+    desc:"London's world-famous theatre district around Shaftesbury Avenue, home to long-running musicals and plays. New shows for 2026 include Beetlejuice.",
+    features:["Live performance","Open in evening","Booking advised","Newly opened","Iconic"],
+    near:["Soho","Covent Garden","Chinatown"],
+    why:"It is one of the greatest places on earth to see live theatre." },
+  { id:"globe", name:"Shakespeare's Globe", cat:"theatre", lat:51.5081, lng:-0.0972,
+    desc:"A faithful rebuild of the open-air theatre where Shakespeare's plays were first performed. Watching a play here is a magical step back in time.",
+    features:["Live performance","On the Thames","Booking advised","Architecture"],
+    near:["Tate Modern","Millennium Bridge","Borough Market"],
+    why:"You can see Shakespeare performed just as it was 400 years ago." },
+  { id:"albert", name:"Royal Albert Hall", cat:"theatre", lat:51.5010, lng:-0.1774,
+    desc:"A grand round concert hall near the museums, hosting classical concerts, pop and the famous summer Proms, with a rich red and gold interior.",
+    features:["Live performance","Open in evening","Booking advised","Architecture","Iconic"],
+    near:["Science Museum","Kensington Gardens","Victoria and Albert Museum"],
+    why:"It is one of the most beautiful and famous concert halls in the world." },
+  { id:"southbank", name:"Southbank Centre and National Theatre", cat:"theatre", lat:51.5067, lng:-0.1144,
+    desc:"A lively riverside arts hub with concerts, theatre, art and free spaces to relax, plus terraces with fine views across the Thames.",
+    features:["Free entry","On the Thames","Live performance","Food and drink","Family friendly"],
+    near:["London Eye","Tate Modern","Waterloo"],
+    why:"It is a free and friendly arts playground by the river." },
+  { id:"sadlerseast", name:"Sadler's Wells East, Stratford", cat:"theatre", lat:51.5440, lng:-0.0140,
+    desc:"A bright new dance theatre that opened in 2025 in the Olympic Park, staging bold modern dance in a striking building.",
+    features:["Newly opened","Live performance","Open in evening","Booking advised"],
+    near:["V and A East Museum, Stratford","Queen Elizabeth Olympic Park","Westfield Stratford"],
+    why:"It is a fresh home for exciting modern dance in east London." },
+
+  // Neighbourhoods
+  { id:"soho", name:"Soho", cat:"areas", lat:51.5135, lng:-0.1325,
+    desc:"A buzzing central area famous for its restaurants, bars, theatres and nightlife. Full of cafes by day and alive by night.",
+    features:["Free entry","Food and drink","Open in evening","Shopping"],
+    near:["Covent Garden","Chinatown","Oxford Street"],
+    why:"It is the lively, late-night heart of central London." },
+  { id:"chinatown", name:"Chinatown", cat:"areas", lat:51.5119, lng:-0.1308,
+    desc:"A colourful district of red gateways, lanterns and Chinese restaurants near Leicester Square, the place for dim sum and bubble tea.",
+    features:["Free entry","Food and drink","Great for photos","Open in evening"],
+    near:["Soho","Leicester Square","Covent Garden"],
+    why:"It is the best spot in London for Chinese food and festive colour." },
+  { id:"nottinghill", name:"Notting Hill", cat:"areas", lat:51.5090, lng:-0.1959,
+    desc:"A pretty west London neighbourhood of pastel houses, antique shops and the famous Portobello Road, host to Europe's biggest carnival.",
+    features:["Free entry","Great for photos","Shopping","Outdoor"],
+    near:["Portobello Road Market","Holland Park","Kensington Gardens"],
+    why:"Its colourful streets are among the most photographed in London." },
+  { id:"shoreditch", name:"Shoreditch", cat:"areas", lat:51.5265, lng:-0.0786,
+    desc:"A trendy east London area known for street art, vintage shops, bars and a young creative crowd, with walls full of murals.",
+    features:["Free entry","Food and drink","Great for photos","Open in evening","Shopping"],
+    near:["Brick Lane","Old Spitalfields Market","Columbia Road Flower Market"],
+    why:"It is the cool, creative heart of east London." },
+  { id:"southbankarea", name:"South Bank", cat:"areas", lat:51.5060, lng:-0.1160,
+    desc:"A wide riverside walk lined with art centres, food stalls, the London Eye and street performers, one of the best strolls in the city.",
+    features:["Free entry","On the Thames","Family friendly","Food and drink","Great for photos"],
+    near:["London Eye","Tate Modern","Southbank Centre and National Theatre"],
+    why:"The riverside walk packs in many sights in one easy stroll." },
+  { id:"greenwich", name:"Greenwich", cat:"areas", lat:51.4810, lng:-0.0070,
+    desc:"A charming riverside village in south-east London, full of maritime history, a market and grand parkland, a relaxed day away from the centre.",
+    features:["Free entry","Outdoor","Food and drink","Family friendly"],
+    near:["Cutty Sark","Royal Observatory Greenwich","Greenwich Park"],
+    why:"It mixes history, river views and a friendly village feel." },
+  { id:"littlevenice", name:"Little Venice", cat:"areas", lat:51.5230, lng:-0.1840,
+    desc:"A peaceful spot where two canals meet, lined with houseboats, willow trees and waterside cafes, with boats running to Camden.",
+    features:["Free entry","Outdoor","Quiet escape","Great for photos"],
+    near:["Regent's Park","Paddington","Maida Vale"],
+    why:"Its calm canals feel like a hidden corner of the city." },
+
+  // Family and Fun
+  { id:"zoo", name:"London Zoo (ZSL)", cat:"family", lat:51.5353, lng:-0.1530,
+    desc:"A historic zoo in Regent's Park, home to lions, gorillas and penguins, mixing a fun day out with serious work to protect wildlife.",
+    features:["Family friendly","Paid entry","Outdoor","Booking advised"],
+    near:["Regent's Park","Primrose Hill","Camden Market"],
+    why:"It is a brilliant day out for families and animal lovers." },
+  { id:"sealife", name:"SEA LIFE London Aquarium", cat:"family", lat:51.5018, lng:-0.1195,
+    desc:"A large aquarium on the South Bank with sharks, rays, penguins and a walk-through tunnel, right next to the London Eye.",
+    features:["Family friendly","Paid entry","Indoor","Good in rain","Booking advised"],
+    near:["London Eye","Southbank Centre and National Theatre","Houses of Parliament"],
+    why:"Children love the sharks and the underwater tunnel." },
+  { id:"harrypotter", name:"Warner Bros. Studio Tour London", cat:"family", lat:51.6934, lng:-0.4189,
+    desc:"A huge studio tour just outside London, a short train ride away, where the Harry Potter films were made. Walk real sets and see the props.",
+    features:["Family friendly","Paid entry","Indoor","Booking advised","Good in rain"],
+    near:["Watford","Leavesden","St Albans"],
+    why:"It is a dream day out for fans of the films, with real film sets." },
+  { id:"transport", name:"London Transport Museum", cat:"family", lat:51.5121, lng:-0.1218,
+    desc:"A fun museum in Covent Garden about the city's buses, trains and the Underground, where children can climb aboard old vehicles.",
+    features:["Family friendly","Paid entry","Indoor","Good in rain"],
+    near:["Covent Garden","Soho","The National Gallery"],
+    why:"Hands-on fun about London's famous red buses and Tube." },
+  { id:"tussauds", name:"Madame Tussauds", cat:"family", lat:51.5230, lng:-0.1547,
+    desc:"The world-famous waxwork museum where you can pose with lifelike models of stars, royals and world leaders.",
+    features:["Family friendly","Paid entry","Indoor","Good in rain","Booking advised"],
+    near:["Regent's Park","Baker Street","The Wallace Collection"],
+    why:"You can stand beside your favourite stars for a photo." },
+  { id:"paddington", name:"The Paddington Bear Experience", cat:"family", lat:51.5012, lng:-0.1195,
+    desc:"A new family attraction near the river where you step into the world of the much-loved bear from darkest Peru. Warm, playful and full of marmalade.",
+    features:["Newly opened","Family friendly","Paid entry","Indoor","Booking advised"],
+    near:["London Eye","Southbank Centre and National Theatre","Houses of Parliament"],
+    why:"It is a charming new treat for younger visitors and fans of Paddington." },
+
+  // Events and Festivals
+  { id:"changing", name:"Changing of the Guard", cat:"events", lat:51.5014, lng:-0.1419,
+    desc:"A colourful royal ceremony outside Buckingham Palace, with marching soldiers in red coats and tall bearskin hats. Check the schedule, as it does not run every day.",
+    features:["Free entry","Royal","Outdoor","Great for photos","Family friendly"],
+    near:["Buckingham Palace","St James's Park","Green Park"],
+    why:"It is a free and truly British piece of royal pageantry." },
+  { id:"trooping", name:"Trooping the Colour", cat:"events", lat:51.5048, lng:-0.1276,
+    desc:"A grand military parade in June to mark the King's official birthday, centred on Horse Guards Parade, with hundreds of soldiers and horses.",
+    features:["Free entry","Royal","Outdoor","Great for photos"],
+    near:["Horse Guards Parade","St James's Park","The Mall"],
+    why:"It is the most splendid royal parade of the year." },
+  { id:"carnival", name:"Notting Hill Carnival", cat:"events", lat:51.5170, lng:-0.2030,
+    desc:"Europe's biggest street party, held over the August Bank Holiday weekend, with steel bands, dancing, costumes and Caribbean food.",
+    features:["Free entry","Outdoor","Food and drink","Family friendly"],
+    near:["Notting Hill","Portobello Road Market","Holland Park"],
+    why:"It is a joyful explosion of music, colour and Caribbean culture." },
+  { id:"chelsea", name:"Chelsea Flower Show", cat:"events", lat:51.4869, lng:-0.1586,
+    desc:"The world's most famous flower show, held each May in the grounds of the Royal Hospital Chelsea, filled with stunning gardens and displays.",
+    features:["Paid entry","Outdoor","Booking advised","Great for photos"],
+    near:["Sloane Square","Battersea Power Station","Chelsea"],
+    why:"It is a glorious celebration of gardens and flowers." },
+  { id:"wimbledon", name:"Wimbledon Championships", cat:"events", lat:51.4340, lng:-0.2140,
+    desc:"The oldest and most famous tennis tournament in the world, played on grass courts in late June and July, with strawberries and cream.",
+    features:["Paid entry","Outdoor","Booking advised","Family friendly"],
+    near:["Wimbledon","Richmond Park","Putney"],
+    why:"It is a classic British sporting event with a special atmosphere." },
+  { id:"nye", name:"New Year's Eve Fireworks", cat:"events", lat:51.5033, lng:-0.1196,
+    desc:"A huge fireworks display over the river by the London Eye to welcome the new year. Tickets for the best viewing areas sell out fast.",
+    features:["Booking advised","On the Thames","Great for photos","Open in evening","Outdoor"],
+    near:["London Eye","South Bank","Westminster"],
+    why:"It is one of the world's great new year celebrations." },
+  { id:"winter", name:"Winter Wonderland", cat:"events", lat:51.5073, lng:-0.1620,
+    desc:"A giant Christmas fair in Hyde Park from November to January, with rides, markets, ice skating and food. A magical treat on a winter evening.",
+    features:["Outdoor","Family friendly","Food and drink","Open in evening","Great for photos"],
+    near:["Hyde Park","Buckingham Palace","Harrods"],
+    why:"It brings festive magic to the heart of London each winter." },
+  { id:"proms", name:"The BBC Proms", cat:"events", lat:51.5010, lng:-0.1774,
+    desc:"A famous series of classical concerts held over the summer at the Royal Albert Hall, with cheap standing tickets that open great music to everyone.",
+    features:["Live performance","Open in evening","Booking advised","Paid entry"],
+    near:["Royal Albert Hall","Kensington Gardens","Science Museum"],
+    why:"It is world-class music at friendly prices, all summer long." },
+  { id:"lordmayor", name:"Lord Mayor's Show", cat:"events", lat:51.5155, lng:-0.0922,
+    desc:"A centuries-old procession through the City of London in November, with floats, bands and carriages, ending with fireworks over the Thames.",
+    features:["Free entry","Outdoor","Family friendly","Great for photos"],
+    near:["St Paul's Cathedral","Bank","Mansion House"],
+    why:"It is one of the oldest and grandest parades in the world." },
+];
+
+/* ------------------------------------------------------------------ *
+ * Best time to visit — keyed by place id, months 1–12.
+ * ------------------------------------------------------------------ */
+const BEST_TIME = {
+  // Royal London
+  buckingham:       {months:[4,5,6,7,8,9],       note:"State Rooms open July to September; Changing of the Guard most days in summer"},
+  royalmews:        {months:[3,4,5,6,7,8,9,10],   note:"Open March to November; occasionally closed for Royal events"},
+  stjamespalace:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"The exterior and gatehouse can be admired at any time of year"},
+  kensingtonpalace: {months:[3,4,5,6,7,8,9,10],   note:"Lovely in spring when Kensington Gardens are in bloom"},
+  hamptoncourt:     {months:[4,5,6,7,8,9],         note:"The maze and summer gardens are at their finest"},
+  banqueting:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; a short indoor visit with a remarkable painted ceiling"},
+  horseguards:      {months:[4,5,6,7,8,9],         note:"The daily Inspection at 11am is most enjoyable in fine weather"},
+  // History and Heritage
+  tower:            {months:[3,4,5,6,7,8,9,10],   note:"Lively in summer; shorter queues and quieter atmosphere in autumn"},
+  towerbridge:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; the glass floor walkway is open daily"},
+  parliament:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Public tours run year-round; summer recess tours show more rooms"},
+  bigben:           {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Visible all year; interior tower tours must be booked well ahead"},
+  churchill:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Fully indoors; a perfect wet-weather attraction any time of year"},
+  hmsbelfast:       {months:[3,4,5,6,7,8,9,10],   note:"The open decks are far more enjoyable in dry weather"},
+  ornc:             {months:[4,5,6,7,8,9],         note:"The grounds are beautiful in summer; Painted Hall open year-round"},
+  cuttysark:        {months:[3,4,5,6,7,8,9,10],   note:"Undercover galleries make it good in rain too"},
+  observatory:      {months:[4,5,6,7,8,9],         note:"Clear days give the best views from the hill above Greenwich"},
+  londonwall:       {months:[4,5,6,7,8,9],         note:"Best in fine weather for a peaceful walk around the ancient City"},
+  // Museums and Galleries
+  britishmuseum:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; weekday mornings are the quietest"},
+  nhm:              {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Brilliant in rain; school holidays bring big crowds"},
+  sciencemuseum:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; weekdays are far less crowded"},
+  vanda:            {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good year-round; the courtyard cafe is lovely on warm days"},
+  nationalgallery:  {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Weekday mornings are the most peaceful time to visit"},
+  npg:              {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Worth combining with the National Gallery next door"},
+  tatemodern:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"The riverside walk is lovely from spring to autumn"},
+  tatebritain:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Calmer than most galleries; fine on any day of the year"},
+  iwm:              {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Particularly moving around Remembrance Day in November"},
+  soane:            {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Book ahead; atmospheric candlelight evenings run in winter"},
+  wallace:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good year-round; the glass-roofed courtyard shines on sunny days"},
+  courtauld:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Quieter than the national galleries; fine all year"},
+  vandaeast:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Opened in 2026 in the Olympic Park; good year-round"},
+  londonmuseum:     {months:[10,11,12],             note:"Opening towards the end of 2026; check ahead before visiting"},
+  // Landmarks and Architecture
+  shard:            {months:[4,5,6,7,8,9],         note:"Clear summer days give the furthest views; book ahead"},
+  eye:              {months:[4,5,6,7,8,9],         note:"Best on clear days; beautiful at dusk in summer"},
+  stpauls:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"The dome walk is best on a clear day; check for services first"},
+  gherkin:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Striking from street level at any time of year"},
+  battersea:        {months:[4,5,6,7,8,9,10,11,12], note:"The riverside walk and market are open year-round"},
+  trafalgar:        {months:[4,5,6,7,8,9,10,11,12], note:"Lively all year; the Christmas tree in December is very special"},
+  millennium:       {months:[4,5,6,7,8,9],         note:"Best on a clear day for the walk and the cathedral view"},
+  // Parks and Nature
+  hydepark:         {months:[4,5,6,7,8,9],         note:"Best in spring and summer for the Serpentine lake and outdoor events"},
+  kensingtongardens:{months:[3,4,5,6,7,8,9,10],   note:"Spring blossom and summer flowers make it especially beautiful"},
+  regentspark:      {months:[4,5,6,7,8,9],         note:"Rose garden peaks in June; open-air theatre runs May to August"},
+  stjamespark:      {months:[4,5,6,7,8,9],         note:"Pelicans fed daily at 14:30; a lovely summer picnic spot"},
+  richmondpark:     {months:[4,5,6,7,8,9,10],     note:"Deer rutting in autumn is a special sight; lovely in spring too"},
+  hampstead:        {months:[4,5,6,7,8,9],         note:"Outdoor swimming ponds open from May to September"},
+  kew:              {months:[3,4,5,6,7,8,9,10],   note:"Glasshouses open all year; the garden peaks from spring to autumn"},
+  greenwichpark:    {months:[4,5,6,7,8,9],         note:"The hilltop views of the city are finest on clear summer days"},
+  primrose:         {months:[4,5,6,7,8,9],         note:"The effort of the climb is rewarded with one of London's best views"},
+  // Markets and Shopping
+  borough:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; especially festive in the weeks before Christmas"},
+  camden:           {months:[4,5,6,7,8,9],         note:"The market and canal towpath are most pleasant in warm weather"},
+  portobello:       {months:[4,5,6,7,8,9],         note:"Best on Saturday mornings from spring to autumn"},
+  covent:           {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"All year; busiest in summer and at Christmas"},
+  spitalfields:     {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all week; Thursday is antiques day"},
+  columbia:         {months:[3,4,5,6,7,8,9,10],   note:"Sunday mornings only; spring flowers are spectacular"},
+  bricklane:        {months:[4,5,6,7,8,9],         note:"Vibrant all year; Sunday market and street art best in fine weather"},
+  harrods:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; quietest on weekday mornings"},
+  leadenhall:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Beautiful all year; particularly atmospheric at Christmas"},
+  // Views and Skyline
+  skygarden:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Free but must be booked in advance; indoors so fine in any weather"},
+  horizon22:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Free and indoors; book ahead as slots fill quickly"},
+  orbit:            {months:[4,5,6,7,8,9],         note:"The slide is open in summer; wonderful views of the Olympic Park"},
+  cablecar:         {months:[4,5,6,7,8,9],         note:"Best on clear days for the river views; runs year-round"},
+  // Faith and Worship
+  abbey:            {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Closed to tourists on Sundays; quieter on weekday mornings"},
+  westminstercathedral:{months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; the tower has a fine view over Victoria"},
+  southwark:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"A peaceful stop near the bustle of Borough Market all year"},
+  neasden:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open to all visitors year-round; check festival days for events"},
+  centralmosque:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open to respectful visitors all year; modest dress required"},
+  // Theatre and Entertainment
+  westend:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Shows run year-round; book well ahead for popular productions"},
+  globe:            {months:[4,5,6,7,8,9,10],     note:"Open-air theatre season runs from April to October"},
+  albert:           {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Events almost every evening; check the programme ahead of your visit"},
+  southbank:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Something on almost every evening; riverside is lovely in summer"},
+  sadlerseast:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Year-round dance programme at the new Stratford venue"},
+  // Neighbourhoods
+  soho:             {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Lively all year; summer evenings on Old Compton Street are fun"},
+  chinatown:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Particularly festive at Lunar New Year in January or February"},
+  nottinghill:      {months:[4,5,6,7,8,9],         note:"August is the carnival; spring and summer are lovely for exploring"},
+  shoreditch:       {months:[4,5,6,7,8,9],         note:"Vibrant all year; summer evenings on Brick Lane are especially lively"},
+  southbankarea:    {months:[4,5,6,7,8,9,10],     note:"The riverside walk shines in fine weather from spring to autumn"},
+  greenwich:        {months:[4,5,6,7,8,9],         note:"Best in fine weather for the park, river and market combined"},
+  littlevenice:     {months:[4,5,6,7,8,9],         note:"The canal towpath and boat trips are most enjoyable in warm weather"},
+  // Family and Fun
+  zoo:              {months:[4,5,6,7,8,9],         note:"Animals are most active outdoors in spring and summer"},
+  sealife:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Fully indoors; perfect for wet days or any time of year"},
+  harrypotter:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Fully indoors; incredibly popular, so book months ahead"},
+  transport:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; great for wet afternoons in Covent Garden"},
+  tussauds:         {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; book ahead to avoid long queues"},
+  paddington:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Newly open; a warm indoor treat whatever the weather"},
+  // Events and Festivals
+  changing:         {months:[4,5,6,7,8,9],         note:"Most reliable in summer; check the schedule as it does not run daily"},
+  trooping:         {months:[6],                    note:"Held in June; an extremely popular event, so arrive very early"},
+  carnival:         {months:[8],                    note:"August Bank Holiday weekend only; Sunday is the grand parade"},
+  chelsea:          {months:[5],                    note:"May only; book months ahead as tickets sell out very fast"},
+  wimbledon:        {months:[6,7],                  note:"Late June to July; queue for ground passes or enter the annual ballot"},
+  nye:              {months:[12],                   note:"31 December only; ticketed areas sell out far in advance"},
+  winter:           {months:[11,12,1],              note:"November to January; magical on winter evenings in Hyde Park"},
+  proms:            {months:[7,8,9],                note:"July to September; cheap standing tickets open great music to all"},
+  lordmayor:        {months:[11],                   note:"Second Saturday of November; free to watch along the whole route"},
+};
+
+
+
+// Unique feature tags, used to build the filter row.
+const ALL_FEATURES = Array.from(new Set(RAW.flatMap(p => p.features))).sort();
+const isTokenValid  = t => typeof t === "string" && /^pk\./.test(t.trim());
+const isApiKeyValid = k => typeof k === "string" && k.trim().length > 10;
+const prefersReducedMotion = () =>
+  window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ------------------------------------------------------------------ *
+ * Icons
+ * ------------------------------------------------------------------ */
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+);
+const PinIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>
+  </svg>
+);
+const RefreshIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>
+  </svg>
+);
+const CameraIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+  </svg>
+);
+const ExternalLinkIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+  </svg>
+);
+const PaletteIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/>
+    <path d="M12 2C6.5 2 2 6.5 2 12a10 10 0 0 0 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+  </svg>
+);
+const GearIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </svg>
+);
+const LocationIcon = ({ active }) => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+    <path d="M12 8a4 4 0 1 0 4 4"/>
+  </svg>
+);
+const CheckIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+);
+
+/* ------------------------------------------------------------------ *
+ * Best time bar
+ * ------------------------------------------------------------------ */
+const MONTH_LABELS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+const MONTH_FULL   = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+function BestTimeBar({ id, color }) {
+  const bt = BEST_TIME[id];
+  if (!bt) return null;
+  const { months, note } = bt;
+  return (
+    <div className="besttime">
+      <span className="lbl">Best time to visit</span>
+      <div className="bt-row" role="img" aria-label={"Best months: " + months.map(m => MONTH_FULL[m-1]).join(", ")}>
+        {MONTH_LABELS.map((abbr, i) => {
+          const on = months.includes(i + 1);
+          return (
+            <span key={i} className={"bt-cell" + (on ? " on" : "")}
+              style={on ? { background: color } : {}} title={MONTH_FULL[i]}>{abbr}</span>
+          );
+        })}
+      </div>
+      {note && <span className="bt-note">{note}</span>}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Theme picker
+ * ------------------------------------------------------------------ */
+function ThemePicker({ currentTheme, onTheme }) {
+  const [open, setOpen] = React.useState(false);
+  const wrapRef = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = e => { if (e.key === "Escape") setOpen(false); };
+    const onDown = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onDown); };
+  }, [open]);
+  const active = THEMES.find(t => t.id === currentTheme) || THEMES[0];
+  return (
+    <div className="theme-wrap" ref={wrapRef}>
+      <button className="theme-btn" onClick={() => setOpen(v => !v)} aria-label="Choose theme" aria-expanded={open}>
+        <PaletteIcon />{active.name}
+      </button>
+      {open && (
+        <div className="theme-panel" role="listbox" aria-label="Theme options">
+          <p className="theme-panel-title">Choose a theme</p>
+          {THEMES.map(t => (
+            <button key={t.id}
+              className={"theme-option" + (t.id === currentTheme ? " thm-active" : "")}
+              role="option" aria-selected={t.id === currentTheme}
+              onClick={() => { onTheme(t.id); setOpen(false); }}>
+              <div className="thm-swatches">
+                {t.palette.map((c, i) => <span key={i} className="thm-swatch" style={{ background: c }} />)}
+              </div>
+              <div className="thm-info">
+                <span className="thm-name">{t.name}</span>
+                <span className="thm-desc">{t.desc}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Settings modal (Mapbox token + Anthropic API key)
+ * ------------------------------------------------------------------ */
+function SettingsModal({ open, onClose, token, onToken, onForgetToken, tokenSaved,
+                         anthropicKey, onAnthropicKey, onForgetAnthropicKey, anthropicSaved }) {
+  const [showToken,  setShowToken]  = useState(false);
+  const [showKey,    setShowKey]    = useState(false);
+  const [draftToken, setDraftToken] = useState("");
+  const [draftKey,   setDraftKey]   = useState("");
+
+  useEffect(() => {
+    if (open) { setDraftToken(token || ""); setDraftKey(anthropicKey || ""); }
+  }, [open, token, anthropicKey]);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = e => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const saveToken = () => { if (draftToken.trim()) onToken(draftToken.trim()); };
+  const saveKey   = () => { if (draftKey.trim())   onAnthropicKey(draftKey.trim()); };
+
+  return (
+    <div className="settings-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div className="settings-head">
+          <h2 className="settings-title" id="settings-title">Settings</h2>
+          <button className="settings-close" onClick={onClose} aria-label="Close settings">&#x2715;</button>
+        </div>
+
+        <div className="settings-section">
+          <span className="settings-label">Mapbox token</span>
+          <p className="settings-hint">Enables the live map. Get a free public token at <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer">mapbox.com</a>. Starts with pk.</p>
+          <div className="settings-field">
+            <input type={showToken ? "text" : "password"} value={draftToken}
+              onChange={e => setDraftToken(e.target.value)} placeholder="pk.your_token_here"
+              onKeyDown={e => { if (e.key === "Enter") saveToken(); }} />
+            <button className="settings-toggle" onClick={() => setShowToken(v => !v)}>{showToken ? "Hide" : "Show"}</button>
+          </div>
+          <div className="settings-row">
+            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={saveToken}>Save and apply</button>
+            <button className="btn ghost" onClick={() => { onForgetToken(); setDraftToken(""); }}>Forget</button>
+            {tokenSaved && <span className="settings-saved"><CheckIcon /> Saved in browser</span>}
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <span className="settings-label">Anthropic API key</span>
+          <p className="settings-hint">Required for "Update all with agent" when using this file outside Claude.ai. Starts with sk-ant-.</p>
+          <div className="settings-field">
+            <input type={showKey ? "text" : "password"} value={draftKey}
+              onChange={e => setDraftKey(e.target.value)} placeholder="sk-ant-api03-..."
+              onKeyDown={e => { if (e.key === "Enter") saveKey(); }} />
+            <button className="settings-toggle" onClick={() => setShowKey(v => !v)}>{showKey ? "Hide" : "Show"}</button>
+          </div>
+          <div className="settings-row">
+            <button className="btn primary" disabled={!isApiKeyValid(draftKey)} onClick={saveKey}>Save</button>
+            <button className="btn ghost" onClick={() => { onForgetAnthropicKey(); setDraftKey(""); }}>Forget</button>
+            {anthropicSaved && <span className="settings-saved"><CheckIcon /> Saved in browser</span>}
+          </div>
+        </div>
+
+        <p className="settings-foot">
+          Both values are stored only in this browser via localStorage under namespaced keys.
+          They are never sent to any server other than Mapbox and Anthropic directly when you use the respective features.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Map panel — with live location tracking
+ * ------------------------------------------------------------------ */
+function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, tokenSaved, mapStyle }) {
+  const containerRef  = useRef(null);
+  const mapRef        = useRef(null);
+  const markersRef    = useRef({});
+  const openPopupRef  = useRef(null);
+  const locMarkerRef  = useRef(null);
+  const watchIdRef    = useRef(null);
+  const prevStyleRef  = useRef(null);
+  const [draftToken,  setDraftToken]  = useState("");
+  const [ready,       setReady]       = useState(false);
+  const [locTracking, setLocTracking] = useState(false);
+  const [locError,    setLocError]    = useState(null);
+  const [locPos,      setLocPos]      = useState(null);
+  const hasFlewToLoc  = useRef(false);
+
+  // Create map once a valid token is present.
+  useEffect(() => {
+    if (!isTokenValid(token) || !containerRef.current || mapRef.current) return;
+    mapboxgl.accessToken = token.trim();
+    const map = new mapboxgl.Map({
+      container: containerRef.current, style: mapStyle,
+      center: [-0.118, 51.509], zoom: 10.2, attributionControl: true,
+    });
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
+    map.on("load", () => { prevStyleRef.current = mapStyle; setReady(true); });
+    mapRef.current = map;
+    return () => {
+      map.remove(); mapRef.current = null; setReady(false); prevStyleRef.current = null;
+    };
+  }, [token]);
+
+  // Switch style when theme changes.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || prevStyleRef.current === null) return;
+    if (prevStyleRef.current === mapStyle) return;
+    prevStyleRef.current = mapStyle;
+    setReady(false);
+    map.setStyle(mapStyle);
+    map.once("style.load", () => setReady(true));
+  }, [mapStyle]);
+
+  // Rebuild place markers whenever visible list or ready state changes.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    Object.values(markersRef.current).forEach(m => m.remove());
+    markersRef.current = {};
+    items.forEach(loc => {
+      const colour = CAT[loc.cat].color;
+      const el = document.createElement("div");
+      el.className = "pin"; el.style.background = colour;
+      el.setAttribute("role", "button"); el.setAttribute("aria-label", loc.name);
+      el.addEventListener("click", () => onSelect(loc.id));
+      const popup = new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(
+        '<div class="pop-eyebrow" style="color:' + colour + '">' + CAT[loc.cat].name + '</div>' +
+        '<div class="pop-title">' + loc.name + '</div>' +
+        '<div class="pop-why">' + loc.why + '</div>'
+      );
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat([loc.lng, loc.lat]).setPopup(popup).addTo(map);
+      markersRef.current[loc.id] = marker;
+    });
+  }, [items, ready, onSelect]);
+
+  // Fly to selected place.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !selectedId) return;
+    const loc = items.find(i => i.id === selectedId);
+    const marker = markersRef.current[selectedId];
+    if (!loc || !marker) return;
+    if (openPopupRef.current && openPopupRef.current.isOpen()) openPopupRef.current.remove();
+    const target = { center: [loc.lng, loc.lat], zoom: Math.max(map.getZoom(), 13) };
+    prefersReducedMotion() ? map.jumpTo(target) : map.flyTo({ ...target, speed: 1.1, essential: true });
+    const popup = marker.getPopup();
+    if (popup && !popup.isOpen()) marker.togglePopup();
+    openPopupRef.current = popup;
+  }, [selectedId, ready, items]);
+
+  // Update or create the location marker whenever position changes.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !locPos) return;
+    const { lat, lng } = locPos;
+    if (!locMarkerRef.current) {
+      const el = document.createElement("div");
+      el.className = "loc-marker";
+      el.innerHTML = '<div class="loc-pulse"></div><div class="loc-core"></div>';
+      locMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
+        .setLngLat([lng, lat]).addTo(map);
+    } else {
+      locMarkerRef.current.setLngLat([lng, lat]);
+    }
+    // Fly to user on first fix only.
+    if (!hasFlewToLoc.current) {
+      hasFlewToLoc.current = true;
+      prefersReducedMotion()
+        ? map.jumpTo({ center: [lng, lat], zoom: 13 })
+        : map.flyTo({ center: [lng, lat], zoom: 13, speed: 1.2, essential: true });
+    }
+  }, [locPos, ready]);
+
+  // Clean up location marker when tracking stops.
+  useEffect(() => {
+    if (!locTracking && locMarkerRef.current) {
+      locMarkerRef.current.remove();
+      locMarkerRef.current = null;
+      hasFlewToLoc.current = false;
+    }
+  }, [locTracking]);
+
+  // Clean up watchPosition on unmount.
+  useEffect(() => () => {
+    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+    if (locMarkerRef.current) { locMarkerRef.current.remove(); locMarkerRef.current = null; }
+  }, []);
+
+  const toggleLocation = useCallback(() => {
+    if (locTracking) {
+      if (watchIdRef.current !== null) { navigator.geolocation.clearWatch(watchIdRef.current); watchIdRef.current = null; }
+      setLocTracking(false); setLocPos(null); setLocError(null);
+    } else {
+      if (!navigator.geolocation) { setLocError("Your browser does not support location."); return; }
+      setLocError(null);
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          setLocPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setLocTracking(true);
+          watchIdRef.current = navigator.geolocation.watchPosition(
+            p => setLocPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
+            e => { setLocError("Location unavailable."); setLocTracking(false); },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+          );
+        },
+        err => {
+          const msgs = { 1:"Location access was denied.", 2:"Location could not be determined.", 3:"Location request timed out." };
+          setLocError(msgs[err.code] || "Location unavailable.");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }, [locTracking]);
+
+  if (!isTokenValid(token)) {
+    return (
+      <div className="mapcard">
+        <div className="map-empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" strokeWidth="1.4" strokeLinejoin="round">
+            <path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16"/><path d="M15 5v16"/>
+          </svg>
+          <h3>See every place on a live map</h3>
+          <p>Enter your Mapbox public token in Settings (gear icon) or paste it below. The full guide works without it.</p>
+          <div className="token-field">
+            <label className="visually-hidden" htmlFor="tok">Mapbox public token</label>
+            <input id="tok" type="text" placeholder="pk.your_token_here" value={draftToken}
+              onChange={e => setDraftToken(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && isTokenValid(draftToken)) onToken(draftToken.trim()); }} />
+            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={() => onToken(draftToken.trim())}>
+              Save and show map
+            </button>
+          </div>
+          <p style={{ fontSize:"11.5px", color:"var(--ink-faint)", marginTop:4 }}>
+            Your token is stored only in this browser and sent nowhere except Mapbox.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mapcard">
+      <div ref={containerRef} className="map" />
+      <div className="map-foot">
+        {CATEGORIES.map(c => (
+          <span className="legend-item" key={c.key}>
+            <span className="dot" style={{ background: c.color }} />{c.name}
+          </span>
+        ))}
+        {locError && <span className="loc-err">{locError}</span>}
+        <button
+          className={"loc-btn" + (locTracking ? " loc-active" : "")}
+          onClick={toggleLocation}
+          title={locTracking ? "Stop tracking my location" : "Show my location on the map"}
+        >
+          <LocationIcon active={locTracking} />
+          {locTracking ? "Tracking" : "My location"}
+        </button>
+        {tokenSaved && (
+          <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:"11px", color:"var(--ink-faint)" }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--thames)" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Token saved
+            <button style={{ background:"none",border:0,color:"var(--ink-faint)",cursor:"pointer",font:"inherit",fontSize:"11px",textDecoration:"underline",textUnderlineOffset:"2px",padding:0 }}
+              onClick={onForgetToken} title="Remove saved token">Forget</button>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Card — per-place card; shows update status but no per-card update button.
+ * ------------------------------------------------------------------ */
+function Card({ loc, selected, onSelect, status }) {
+  const cat = CAT[loc.cat];
+  const photoUrl   = "https://www.google.com/search?q=" + encodeURIComponent(loc.name + " London") + "&tbm=isch";
+  const unsplashUrl = "https://unsplash.com/s/photos/" + encodeURIComponent(loc.name.toLowerCase().replace(/\s+/g, "-") + "-london");
+  return (
+    <article className={"card" + (selected ? " sel" : "")} id={"card-" + loc.id}>
+      <span className="eyebrow" style={{ color: cat.color }}>
+        <span className="dot" style={{ background: cat.color }} />{cat.name}
+      </span>
+      <h3 className="card-title">{loc.name}</h3>
+      <p className="desc">{loc.desc}</p>
+
+      <div className="tags">
+        {loc.features.map(f => (
+          <span className={"tag" + (f === "Newly opened" ? " new" : "")} key={f}>{f}</span>
+        ))}
+      </div>
+
+      <BestTimeBar id={loc.id} color={cat.color} />
+
+      <div className="field">
+        <span className="lbl">Close by</span>
+        <span className="val">{loc.near.join(", ")}</span>
+      </div>
+      <div className="field why">
+        <span className="lbl">Why see it</span>
+        <span className="val">{loc.why}</span>
+      </div>
+
+      {loc.note ? <div className="note">{loc.note}</div> : null}
+
+      <div className="photo-links">
+        <a className="photo-link" href={photoUrl} target="_blank" rel="noopener noreferrer">
+          <CameraIcon /> Google Photos <ExternalLinkIcon />
+        </a>
+        <a className="photo-link" href={unsplashUrl} target="_blank" rel="noopener noreferrer">
+          <CameraIcon /> Unsplash <ExternalLinkIcon />
+        </a>
+      </div>
+
+      <div className="card-status">
+        {status === "loading" && <><span className="spinner" /><span style={{fontSize:"12px",color:"var(--ink-soft)"}}>Updating...</span></>}
+        {status === "done"    && <span className="saved"><CheckIcon /> Updated just now</span>}
+        {status === "error"   && <span className="err">Could not reach the agent. Please try again.</span>}
+      </div>
+
+      <div className="actions">
+        <button className="btn primary" onClick={() => onSelect(loc.id)}>
+          <PinIcon /> Show on map
+        </button>
+      </div>
+    </article>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * App
+ * ------------------------------------------------------------------ */
+function App() {
+  const [data,            setData]           = useState(RAW);
+  const [query,           setQuery]          = useState("");
+  const [cat,             setCat]            = useState("all");
+  const [feats,           setFeats]          = useState([]);
+  const [showAllFeats,    setShowAllFeats]   = useState(false);
+  const [selectedId,      setSelectedId]     = useState(null);
+  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || MAPBOX_TOKEN);
+  const [tokenSaved,      setTokenSaved]     = useState(() => !!lsGet(LS_TOKEN));
+  const [anthropicKey,    setAnthropicKey]   = useState(() => lsGet(LS_ANTHROPIC) || "");
+  const [anthropicSaved,  setAnthropicSaved] = useState(() => !!lsGet(LS_ANTHROPIC));
+  const [themeId,         setThemeId]        = useState(() => {
+    const s = lsGet(LS_THEME);
+    return s && THEMES.find(t => t.id === s) ? s : DEFAULT_THEME.id;
+  });
+  const [settingsOpen,    setSettingsOpen]   = useState(false);
+  const [status,          setStatus]         = useState({});
+  const [updatingAll,     setUpdatingAll]    = useState(false);
+  const [updateProgress,  setUpdateProgress] = useState(0);
+  const [updateTotal,     setUpdateTotal]    = useState(0);
+  const cancelRef  = useRef(false);
+  const controlsRef = useRef(null);
+
+  // Track controls bar height and keep --controls-h in sync.
+  useEffect(() => {
+    const el = controlsRef.current;
+    if (!el) return;
+    const apply = () =>
+      document.documentElement.style.setProperty("--controls-h", el.offsetHeight + "px");
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Apply theme CSS variables.
+  useEffect(() => {
+    const t = THEMES.find(x => x.id === themeId) || DEFAULT_THEME;
+    applyTheme(t);
+  }, [themeId]);
+
+  const activeTheme = THEMES.find(x => x.id === themeId) || DEFAULT_THEME;
+
+  /* --- persistence handlers --- */
+  const handleTheme        = useCallback(id => { setThemeId(id); lsSet(LS_THEME, id); }, []);
+  const handleToken        = useCallback(t  => { setToken(t); setTokenSaved(lsSet(LS_TOKEN, t)); }, []);
+  const handleForgetToken  = useCallback(() => { lsDel(LS_TOKEN); setToken(MAPBOX_TOKEN); setTokenSaved(false); }, []);
+  const handleAnthropicKey = useCallback(k  => { setAnthropicKey(k); setAnthropicSaved(lsSet(LS_ANTHROPIC, k)); }, []);
+  const handleForgetApiKey = useCallback(() => { lsDel(LS_ANTHROPIC); setAnthropicKey(""); setAnthropicSaved(false); }, []);
+
+  /* --- filters --- */
+  const toggleFeat = useCallback(f =>
+    setFeats(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]), []);
+  const clearAll   = useCallback(() => { setQuery(""); setCat("all"); setFeats([]); }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return data.filter(p => {
+      if (cat !== "all" && p.cat !== cat) return false;
+      if (feats.length && !feats.every(f => p.features.includes(f))) return false;
+      if (q) {
+        const hay = (p.name+" "+p.desc+" "+p.why+" "+CAT[p.cat].name+" "+
+          p.features.join(" ")+" "+p.near.join(" ")).toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [data, query, cat, feats]);
+
+  const grouped = useMemo(() =>
+    CATEGORIES.map(c => ({ cat: c, items: filtered.filter(p => p.cat === c.key) }))
+      .filter(g => g.items.length), [filtered]);
+
+  const onSelect = useCallback(id => {
+    setSelectedId(id);
+    const el = document.getElementById("card-" + id);
+    if (el) el.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+  }, []);
+
+  /* --- agent update for a single place --- */
+  const buildPrompt = loc =>
+    "You are a London travel editor. Reply with strict minified JSON only, no markdown and no extra words. " +
+    "Use British English, simple clear language for non-native English speakers, never use emojis or em-dashes. " +
+    'Give fresh visitor details for this London place: "' + loc.name + '". ' +
+    "Return a JSON object with keys: description (two short sentences), features (array of 3-5 short tags), " +
+    "why (one sentence on why to visit), note (one short sentence with any timely 2026 detail, or empty string). " +
+    "Keep all facts accurate as of 2026.";
+
+  const callAgent = useCallback(async loc => {
+    const headers = { "Content-Type": "application/json" };
+    if (anthropicKey) headers["x-api-key"] = anthropicKey;
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers,
+      body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
+        messages:[{ role:"user", content: buildPrompt(loc) }] }),
+    });
+    const json = await res.json();
+    const text = (json.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
+    return JSON.parse(text.replace(/```json|```/g,"").trim());
+  }, [anthropicKey]);
+
+  const applyUpdate = useCallback((locId, u) => {
+    setData(prev => prev.map(p => p.id !== locId ? p : {
+      ...p,
+      desc:     typeof u.description==="string" && u.description ? u.description : p.desc,
+      features: Array.isArray(u.features) && u.features.length   ? u.features    : p.features,
+      why:      typeof u.why==="string"    && u.why              ? u.why          : p.why,
+      note:     typeof u.note==="string"                         ? u.note         : (p.note||""),
+    }));
+  }, []);
+
+  /* --- update ALL visible places sequentially --- */
+  const onUpdateAll = useCallback(async () => {
+    if (updatingAll) return;
+    const places = [...filtered];
+    setUpdatingAll(true);
+    setUpdateProgress(0);
+    setUpdateTotal(places.length);
+    cancelRef.current = false;
+
+    for (let i = 0; i < places.length; i++) {
+      if (cancelRef.current) break;
+      const loc = places[i];
+      setStatus(s => ({ ...s, [loc.id]: "loading" }));
+      try {
+        const u = await callAgent(loc);
+        applyUpdate(loc.id, u);
+        setStatus(s => ({ ...s, [loc.id]: "done" }));
+        setTimeout(() => setStatus(s => ({ ...s, [loc.id]: "idle" })), 5000);
+      } catch(_) {
+        setStatus(s => ({ ...s, [loc.id]: "error" }));
+        setTimeout(() => setStatus(s => ({ ...s, [loc.id]: "idle" })), 5000);
+      }
+      setUpdateProgress(i + 1);
+      if (i < places.length - 1 && !cancelRef.current) await sleep(350);
+    }
+    setUpdatingAll(false);
+  }, [filtered, updatingAll, callAgent, applyUpdate]);
+
+  const cancelUpdateAll = useCallback(() => { cancelRef.current = true; setUpdatingAll(false); }, []);
+
+  const featuresToShow = showAllFeats ? ALL_FEATURES : ALL_FEATURES.slice(0, 10);
+  const hasFilters = query || cat !== "all" || feats.length;
+
+  return (
+    <React.Fragment>
+      <SettingsModal
+        open={settingsOpen} onClose={() => setSettingsOpen(false)}
+        token={token} onToken={handleToken} onForgetToken={handleForgetToken} tokenSaved={tokenSaved}
+        anthropicKey={anthropicKey} onAnthropicKey={handleAnthropicKey}
+        onForgetAnthropicKey={handleForgetApiKey} anthropicSaved={anthropicSaved}
+      />
+
+      <header className="masthead wrap">
+        <p className="kicker">A visitor's field guide</p>
+        <h1 className="nameplate">London</h1>
+        <div className="double-rule" />
+        <p className="sub">Every place worth seeing, grouped by what it is. Search, filter, and find it on the map.</p>
+        <p className="dateline">Updated June 2026</p>
+      </header>
+
+      <div className="controls" ref={controlsRef}>
+        <div className="wrap controls-inner">
+          <div className="search-row">
+            <div className="search">
+              <SearchIcon />
+              <label className="visually-hidden" htmlFor="q">Search places</label>
+              <input id="q" type="text" placeholder="Search by name, area or feature"
+                value={query} onChange={e => setQuery(e.target.value)} />
+            </div>
+            <span className="count">{filtered.length} of {data.length} places</span>
+            {hasFilters ? <button className="linkbtn" onClick={clearAll}>Clear</button> : null}
+
+            <div className="search-tools">
+              {updatingAll ? (
+                <span className="update-progress">
+                  <span className="spinner" />
+                  <span><span className="update-count">{updateProgress}</span> of {updateTotal}</span>
+                  <button className="linkbtn" onClick={cancelUpdateAll}>Cancel</button>
+                </span>
+              ) : (
+                <button className="btn ghost" onClick={onUpdateAll} disabled={!filtered.length} title="Fetch fresh details for all visible places via the agent">
+                  <RefreshIcon /> Update all {filtered.length > 0 ? filtered.length : ""}
+                </button>
+              )}
+              <ThemePicker currentTheme={themeId} onTheme={handleTheme} />
+              <button className="gear-btn" onClick={() => setSettingsOpen(true)} aria-label="Open settings">
+                <GearIcon />
+              </button>
+            </div>
+          </div>
+
+          <div className="chiprow">
+            <button className={"chip" + (cat === "all" ? " active" : "")} onClick={() => setCat("all")}>All categories</button>
+            {CATEGORIES.map(c => (
+              <button key={c.key} className={"chip" + (cat === c.key ? " active" : "")}
+                onClick={() => setCat(cat === c.key ? "all" : c.key)}>
+                <span className="dot" style={{ background: c.color }} />{c.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="filters-label">Filter by feature</div>
+          <div className="chiprow wrapped">
+            {featuresToShow.map(f => (
+              <button key={f} className={"chip feat" + (feats.includes(f) ? " active" : "")} onClick={() => toggleFeat(f)}>{f}</button>
+            ))}
+            {ALL_FEATURES.length > 10 && (
+              <button className="chip" onClick={() => setShowAllFeats(v => !v)}>
+                {showAllFeats ? "Fewer filters" : "More filters"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <main className="wrap layout">
+        <div className="col-list">
+          {grouped.length === 0 ? (
+            <div className="empty-state">
+              <h3>No places match your filters</h3>
+              <p>Try removing a feature or choosing a different category.</p>
+              <p style={{ marginTop:12 }}><button className="btn primary" onClick={clearAll}>Clear filters</button></p>
+            </div>
+          ) : grouped.map(g => (
+            <section className="section" key={g.cat.key}>
+              <div className="sec-head">
+                <span className="sec-dot" style={{ background: g.cat.color }} />
+                <h2 className="sec-name">{g.cat.name}</h2>
+                <span className="sec-count">{g.items.length} {g.items.length === 1 ? "place" : "places"}</span>
+              </div>
+              <p className="sec-blurb">{g.cat.blurb}</p>
+              <div className="grid">
+                {g.items.map(loc => (
+                  <Card key={loc.id} loc={loc} selected={selectedId === loc.id}
+                    onSelect={onSelect} status={status[loc.id] || "idle"} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <aside className="col-map">
+          <MapPanel items={filtered} selectedId={selectedId} onSelect={setSelectedId}
+            token={token} onToken={handleToken} onForgetToken={handleForgetToken}
+            tokenSaved={tokenSaved} mapStyle={activeTheme.mapStyle} />
+        </aside>
+      </main>
+
+      <footer className="footer">
+        <div className="wrap">
+          <p>London, A Visitor's Field Guide. Built by Hamid. Details current as of June 2026. Opening times and prices can change, so it is wise to check ahead before you set out.</p>
+          <p>Map powered by Mapbox. Use the gear icon to manage your tokens. Update all uses the Claude API to refresh every visible place's details on demand.</p>
+        </div>
+      </footer>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
 </body>
 </html>
