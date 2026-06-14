@@ -455,7 +455,59 @@
   .footer { border-top: 1px solid var(--line); padding: 22px 0 40px; color: var(--ink-faint); font-size: 12.5px; }
   .footer p { margin: 4px 0; }
 
-  /* ── Mapbox overrides ────────────────────────────────────────── */
+  /* ── PWA install banner (mobile home page) ───────────────────── */
+  .pwa-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: color-mix(in srgb, var(--claret) 7%, var(--stone-card));
+    border: 1px solid color-mix(in srgb, var(--claret) 30%, var(--line));
+    border-radius: 14px; padding: 11px 16px;
+    margin: 0 20px 14px;
+  }
+  .pwa-banner-text {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 13px; color: var(--ink-soft); line-height: 1.35;
+  }
+  .pwa-banner-text svg { flex-shrink: 0; color: var(--claret); }
+  .pwa-install-pill {
+    flex-shrink: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600;
+    background: var(--claret); color: #fff; border: 0;
+    border-radius: 999px; padding: 8px 15px; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity .15s;
+  }
+  .pwa-install-pill:active { opacity: .8; }
+  @media (min-width: 1000px) { .pwa-banner { display: none; } }
+
+  /* ── Settings iOS steps ──────────────────────────────────────── */
+  .settings-ios-steps {
+    margin: 8px 0 0; padding-left: 18px;
+    font-size: 13.5px; color: var(--ink-soft); line-height: 1.9;
+  }
+  .ios-share {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 5px;
+    background: var(--stone-deep); border: 1px solid var(--line);
+    font-size: 11px; vertical-align: middle;
+  }
+
+  /* ── Score bar ───────────────────────────────────────────────── */
+  .score-bar { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .score-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border-radius: 999px; padding: 3px 10px; border: 1px solid;
+    font-size: 11px; white-space: nowrap; font-weight: 500;
+  }
+  .sc-label { opacity: .7; font-size: 10.5px; }
+  .sc-val   { font-weight: 700; font-size: 12px; }
+  .sc-stars { letter-spacing: -.05em; font-size: 10px; }
+  .sc-google   { background: rgba(46,125,50,.09);  border-color: rgba(46,125,50,.28);  color: #1B5E20; }
+  .sc-ta       { background: rgba(0,106,137,.09);  border-color: rgba(0,106,137,.28);  color: #00456F; }
+  .sc-michelin { background: rgba(211,47,47,.09);  border-color: rgba(211,47,47,.28);  color: #B71C1C; font-weight: 700; }
+  .sc-award    {
+    background: color-mix(in srgb, var(--brass) 10%, var(--stone-card));
+    border-color: color-mix(in srgb, var(--brass) 35%, transparent);
+    color: var(--brass); font-weight: 700;
+  }
   .pin {
     width: 15px; height: 15px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
     border: 2px solid var(--stone-card); box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer;
@@ -649,6 +701,8 @@ const CATEGORIES = [
   { key: "areas",      name: "Neighbourhoods",          color: "#2F6F6A", blurb: "Distinct quarters with their own character." },
   { key: "family",     name: "Family and Fun",          color: "#C77A2B", blurb: "Animals, waxworks and treats for younger visitors." },
   { key: "events",     name: "Events and Festivals",    color: "#8E3B6B", blurb: "Seasonal highlights worth planning a trip around." },
+  { key: "pubs",    name: "Pubs and Bars",           color: "#8B4513", blurb: "London has more historic pubs per square mile than anywhere on earth. From medieval galleried coaching inns to ornate Victorian gin palaces, and on to world-class cocktail bars, a good London pub is as much an architectural treasure as a place to drink." },
+  { key: "dining",  name: "Restaurants and Dining",  color: "#8B2252", blurb: "London is one of the great dining cities of the world. Michelin-starred kitchens sit beside beloved no-reservation counters and cult street food stalls. The range is extraordinary and the quality, at every level, has never been higher." },
 ];
 const CAT = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
 
@@ -1139,6 +1193,146 @@ const RAW = [
     features:["Free entry","Outdoor","Family friendly","Great for photos"],
     near:["St Paul's Cathedral","Bank","Mansion House"],
     why:"It is one of the oldest and grandest parades in the world." },
+  // Pubs and Bars
+  { id:"georgeinn",     name:"The George Inn",              cat:"pubs",   lat:51.5006, lng:-0.0935,
+    desc:"The last surviving galleried coaching inn in London, dating from 1677 and managed by the National Trust. The cobbled yard and wooden galleries are straight out of Dickens. It still serves proper ale in rooms unchanged for three centuries.",
+    features:["Historic","National Trust","Outdoor courtyard","Real ale"],
+    near:["Borough Market","Southwark Cathedral","HMS Belfast"],
+    why:"The most beautiful pub in London and the only one of its kind — a piece of living seventeenth-century England." },
+  { id:"prospectwhi",  name:"Prospect of Whitby",           cat:"pubs",   lat:51.5067, lng:-0.0554,
+    desc:"Said to date from 1520 and widely called the oldest riverside pub in London. Turner painted the Thames from its terrace, Pepys drank inside. The pewter bar, flagstone floor, and river views are genuinely ancient.",
+    features:["Historic","Riverside","Views","Real ale"],
+    near:["Wapping","Tower of London","Tower Bridge"],
+    why:"Five centuries of Londoners have drunk here — the atmosphere is irreplaceable." },
+  { id:"yeoldechesh",  name:"Ye Olde Cheshire Cheese",      cat:"pubs",   lat:51.5143, lng:-0.1065,
+    desc:"Rebuilt in 1667 after the Great Fire, this labyrinthine Fleet Street pub has barely changed since. Dark wood, low ceilings, sawdust floors and open fires. Dr Johnson, Dickens, Twain and Yeats all drank here.",
+    features:["Historic","Open fire","Medieval atmosphere","Real ale"],
+    near:["St Paul's Cathedral","Temple Church","Barbican Centre"],
+    why:"Unchanged for three and a half centuries — the best pub in the City of London." },
+  { id:"lambflag",     name:"Lamb and Flag",                 cat:"pubs",   lat:51.5128, lng:-0.1237,
+    desc:"A tiny, rough-beamed pub tucked into a narrow Covent Garden alley since around 1772. Once a bare-knuckle boxing venue known as the Bucket of Blood. Now a cheerfully busy watering hole with real ales and a reliably good atmosphere.",
+    features:["Historic","Real ale","Covent Garden","Characterful alley setting"],
+    near:["Covent Garden Market","Royal Opera House","National Gallery"],
+    why:"One of the genuinely oldest pubs in central London — the alley setting feels unchanged for two centuries." },
+  { id:"blackfriar",   name:"The Black Friar",               cat:"pubs",   lat:51.5121, lng:-0.1030,
+    desc:"Built in 1875 on the site of a Dominican friary, this Grade II listed pub has the most extraordinary interior in London. Arts and Crafts marble, bronze reliefs of jolly monks, and art nouveau mosaics cover every surface.",
+    features:["Historic","Arts and Crafts interior","Grade II listed","Real ale"],
+    near:["St Paul's Cathedral","Tate Modern","Millennium Bridge"],
+    why:"Not just a great pub but a work of art — the most ornate interior of any public house in the country." },
+  { id:"princesslouise", name:"Princess Louise",             cat:"pubs",   lat:51.5161, lng:-0.1204,
+    desc:"A Grade II listed Victorian gin palace built in 1872 with an interior so perfectly preserved it stops visitors in their tracks. Hand-painted etched glass, ornate plasterwork, mahogany and gilded tiles fill every inch of the space.",
+    features:["Victorian gin palace","Grade II listed","Preserved interior","Real ale"],
+    near:["British Museum","Covent Garden Market","Sir John Soane's Museum"],
+    why:"The finest surviving Victorian pub interior in London — a gin palace in its full glory." },
+  { id:"tenbells",     name:"Ten Bells",                     cat:"pubs",   lat:51.5205, lng:-0.0769,
+    desc:"A Victorian pub on the edge of Spitalfields Market with dark wood, mosaic tiles, and a genuinely layered history. Now a relaxed craft beer bar with a strong East London character and a beautiful tiled exterior.",
+    features:["Historic","East London","Craft beer","Spitalfields"],
+    near:["Old Spitalfields Market","Shoreditch","Brick Lane"],
+    why:"The most atmospheric pub in East London — history and craft beer in equal measure." },
+  { id:"dogandduck",   name:"The Dog and Duck",              cat:"pubs",   lat:51.5131, lng:-0.1326,
+    desc:"A minuscule Victorian pub in the heart of Soho with original Minton tile floors, a curved mahogany bar, and a loyal local crowd. George Orwell was a regular. Somehow it has survived Soho's transformation entirely intact.",
+    features:["Victorian tiles","Tiny and intimate","Soho","Real ale"],
+    near:["Soho","Ronnie Scott's Jazz Club","West End Theatre"],
+    why:"The smallest and most perfectly formed of all Soho's many pubs — exactly what a great London pub should be." },
+  { id:"thegrapes",    name:"The Grapes",                    cat:"pubs",   lat:51.5089, lng:-0.0238,
+    desc:"A narrow riverside pub in Limehouse with origins in the sixteenth century. Tiny upper dining room, steep stairs, and one of the finest views of the Thames from any pub window in London. The fish upstairs is outstanding.",
+    features:["Historic","Riverside","East London","Views"],
+    near:["Canary Wharf","Greenwich","Cable car"],
+    why:"The most characterful pub east of the City, with a genuine connection to the old working river." },
+  { id:"connaughtbar", name:"Connaught Bar",                 cat:"pubs",   lat:51.5117, lng:-0.1495,
+    desc:"A gilded Art Deco cocktail bar inside the Connaught Hotel in Mayfair, regularly ranked among the best bars in the world. The Martini trolley is a theatrical London institution. Reservations are essential.",
+    features:["Cocktails","World class","Art Deco","Mayfair"],
+    near:["Mayfair","Hyde Park","Sketch"],
+    why:"Widely considered the finest cocktail bar in London — a masterclass in the art of service.",
+    note:"Reservations essential. Smart dress required." },
+  { id:"savoybar",     name:"American Bar at the Savoy",     cat:"pubs",   lat:51.5093, lng:-0.1209,
+    desc:"The bar inside the Savoy Hotel where the Dry Martini was perfected in the 1920s and where Sinatra, Dietrich, and Coward were regulars. A true legend of cocktail history with an incomparable sense of occasion.",
+    features:["Cocktails","Historic","Iconic","Jazz piano"],
+    near:["Covent Garden Market","National Gallery","Trafalgar Square"],
+    why:"Where the modern cocktail was born — still serving exquisite drinks in one of London's great rooms.",
+    note:"Smart dress required. Book ahead, especially weekends." },
+  { id:"swiftsoho",   name:"Swift",                          cat:"pubs",   lat:51.5133, lng:-0.1319,
+    desc:"A two-floor Soho bar with an Irish whiskey bar on the ground floor and cocktails in the atmospheric basement. It opened in 2016 and became one of the most acclaimed bars in the city almost immediately.",
+    features:["Cocktails","Whiskey","Soho","Modern craft bar"],
+    near:["Soho","Ronnie Scott's Jazz Club","West End Theatre"],
+    why:"The most celebrated modern cocktail bar in Soho — exceptional craft in a setting that feels genuinely grown-up." },
+
+  // Restaurants and Dining
+  { id:"rules",        name:"Rules",                         cat:"dining", lat:51.5120, lng:-0.1236,
+    desc:"Established in 1798, Rules is the oldest restaurant in London. It has fed monarchs, actors, and writers for over two centuries from its Covent Garden home. The menu is a love letter to traditional British food — game in season, potted shrimps, and great puddings.",
+    features:["British","Historic","Covent Garden","Game and seasonal"],
+    near:["Covent Garden Market","Royal Opera House","National Gallery"],
+    why:"The oldest restaurant in London — eating here is as much a historical experience as a culinary one." },
+  { id:"dishoom",      name:"Dishoom",                       cat:"dining", lat:51.5113, lng:-0.1241,
+    desc:"A beautifully designed Bombay café-inspired restaurant that has been reliably full since it opened. The slow-cooked black daal (simmered for 24 hours) is a London legend. They do not take reservations for most sittings, so come early.",
+    features:["Indian","Bombay café style","No reservations","All-day dining"],
+    near:["Covent Garden Market","National Gallery","West End Theatre"],
+    why:"The most loved Indian restaurant in London — the daal alone is worth any queue." },
+  { id:"stjohnrest",   name:"St John",                       cat:"dining", lat:51.5197, lng:-0.1013,
+    desc:"Fergus Henderson's nose-to-tail restaurant opened in 1994 in a former smokehouse near Smithfield Market and changed British cooking permanently. Bone marrow on toast, roasted marrow and parsley salad. Simple, bold, brilliant, and one Michelin star.",
+    features:["British","Michelin star","Nose to tail","Smithfield"],
+    near:["Barbican Centre","London Museum","St Bartholomew the Great"],
+    why:"The restaurant that reinvented British cooking — a pilgrimage for anyone who cares about food." },
+  { id:"barrafina",    name:"Barrafina",                     cat:"dining", lat:51.5101, lng:-0.1283,
+    desc:"A narrow counter-seating Spanish tapas restaurant near the Strand with no reservations — join the queue. Inspired by San Sebastian's pintxos bars, it holds one Michelin star and serves some of the finest Spanish food outside Spain.",
+    features:["Spanish","Michelin star","No reservations","Counter dining"],
+    near:["Covent Garden Market","National Gallery","Trafalgar Square"],
+    why:"The best Spanish food in London — arrive early, queue patiently, eat brilliantly." },
+  { id:"padella",      name:"Padella",                       cat:"dining", lat:51.5047, lng:-0.0930,
+    desc:"A small, no-reservations pasta restaurant beside Borough Market that has had queues since it opened in 2016. Fresh pasta made on site daily — the pici all'amatriciana and the tonnarelli cacio e pepe are extraordinary at a price that defies belief.",
+    features:["Italian","Fresh pasta","No reservations","Borough Market"],
+    near:["Borough Market","Southwark Cathedral","Tate Modern"],
+    why:"The best bowl of pasta in London at a price that defies all logic — worth any queue." },
+  { id:"ledbury",      name:"The Ledbury",                   cat:"dining", lat:51.5153, lng:-0.1955,
+    desc:"Brett Graham's two Michelin-starred restaurant in Notting Hill is considered one of the finest in Europe. Precise, beautiful cooking rooted in outstanding British and Australian produce. An unmistakable point of reference for world-class dining in London.",
+    features:["European","2 Michelin Stars","Fine dining","Notting Hill"],
+    near:["Notting Hill","Portobello Road Market","Kensington Palace"],
+    why:"One of the finest restaurants in Europe — an essential destination for anyone who takes food seriously." },
+  { id:"brat",         name:"Brat",                          cat:"dining", lat:51.5228, lng:-0.0756,
+    desc:"Tomos Parry's Basque-inspired restaurant in Shoreditch built its reputation on a whole turbot cooked over charcoal. One Michelin star. Wood-fired cooking and bold seasonal British produce make it one of the most exciting restaurants in the city.",
+    features:["Basque-inspired","Michelin star","Wood fire","Shoreditch"],
+    near:["Shoreditch","Old Spitalfields Market","Brick Lane"],
+    why:"The restaurant that defined London dining in the 2020s — wood fire, great produce, and genuine excitement." },
+  { id:"sketch",       name:"Sketch",                        cat:"dining", lat:51.5118, lng:-0.1434,
+    desc:"A labyrinth of extravagant rooms designed by different artists. The pink Gallery by David Shrigley is its most famous space. The Lecture Room holds two Michelin stars. As much an art experience as a meal.",
+    features:["French","2 Michelin Stars","Art installation","Mayfair"],
+    near:["Mayfair","Royal Academy","Bond Street"],
+    why:"The most visually spectacular restaurant in London — as good for afternoon tea as for a Michelin-starred dinner." },
+  { id:"wolseley",     name:"The Wolseley",                  cat:"dining", lat:51.5076, lng:-0.1427,
+    desc:"A grand Viennese-style café-restaurant on Piccadilly in a spectacular former car showroom. Breakfast, lunch, afternoon tea, and dinner served to a glamorous, eclectic crowd. The smoked salmon and the Wiener Schnitzel are signatures.",
+    features:["European","Grand café","Breakfast and afternoon tea","Piccadilly"],
+    near:["Mayfair","Hyde Park","Royal Academy"],
+    why:"The most beautiful café in London — ideal at any time of day but especially for a long, luxurious breakfast." },
+  { id:"ottolenghi",   name:"Ottolenghi Islington",          cat:"dining", lat:51.5340, lng:-0.1068,
+    desc:"Yotam Ottolenghi's original Islington restaurant is a neighbourhood delight — all-day Mediterranean mezze, extraordinary vegetable dishes, and a legendary window display of cakes. The cooking that influenced a generation of food culture.",
+    features:["Mediterranean","Vegetable-forward","All-day dining","Islington"],
+    near:["Sadler's Wells East","Exmouth Market","Upper Street"],
+    why:"The restaurant that changed how Britain eats — a pilgrimage for anyone who loves vegetables, spice, and beautiful food." },
+  { id:"hawksmoor",    name:"Hawksmoor Seven Dials",         cat:"dining", lat:51.5150, lng:-0.1278,
+    desc:"Consistently rated the best steak restaurant in London. Dry-aged British beef from specific farms, bone-in ribeye and porterhouse cuts, outstanding cocktails, and a warm, dark dining room in the heart of Covent Garden.",
+    features:["Steakhouse","British beef","Cocktails","Covent Garden"],
+    near:["Covent Garden Market","West End Theatre","National Gallery"],
+    why:"The best steak in London — exceptional British beef in an atmosphere that matches the quality of the food." },
+  { id:"sabor",        name:"Sabor",                         cat:"dining", lat:51.5107, lng:-0.1437,
+    desc:"Nieves Barragán Mohacho's Spanish restaurant in Mayfair holds one Michelin star and is regularly described as among the best restaurants in Europe. The counter el asador upstairs is dedicated to roasted meats — the suckling pig is exceptional.",
+    features:["Spanish","Michelin star","Mayfair","Counter dining"],
+    near:["Mayfair","Royal Academy","The Wolseley"],
+    why:"The finest Spanish restaurant outside Spain — the roast suckling pig from the asador is a dish to remember." },
+  { id:"baosoho",      name:"Bao Soho",                      cat:"dining", lat:51.5133, lng:-0.1330,
+    desc:"The original London restaurant specialising in Taiwanese bao buns. The braised pork bao with peanut powder and coriander has been replicated across the city but never quite matched. No reservations; reliably worth the queue.",
+    features:["Taiwanese","Bao buns","No reservations","Soho"],
+    near:["Soho","Ronnie Scott's Jazz Club","West End Theatre"],
+    why:"The bao that launched a food movement — small, perfect, and worth every minute of the queue." },
+  { id:"rivercafe",    name:"River Cafe",                    cat:"dining", lat:51.4872, lng:-0.2284,
+    desc:"Ruth Rogers opened this Italian restaurant by the Thames in Hammersmith in 1987 with the late Rose Gray. It has held a Michelin star almost continuously since and has trained a generation of British chefs. The cooking is seasonal, simple, and extraordinary.",
+    features:["Italian","Michelin star","Riverside","Hammersmith"],
+    near:["Hammersmith","Thames riverside","Fulham"],
+    why:"The most influential Italian restaurant in Britain — it shaped an entire generation of British cooking." },
+  { id:"petersham",    name:"Petersham Nurseries Cafe",      cat:"dining", lat:51.4481, lng:-0.3023,
+    desc:"A working garden centre and Michelin-starred restaurant near Richmond that serves exceptional Italian-inspired food in a rickety greenhouse. Difficult to reach but a completely unique experience — eating in a real kitchen garden.",
+    features:["Italian","Michelin star","Garden setting","Richmond"],
+    near:["Richmond Park","Kew Gardens","Richmond"],
+    why:"The most unusual Michelin-starred restaurant in Britain — a working nursery where the food grows around you." },
 ];
 
 /* ------------------------------------------------------------------ *
@@ -1249,11 +1443,142 @@ const BEST_TIME = {
   winter:           {months:[11,12,1],              note:"November to January; magical on winter evenings in Hyde Park"},
   proms:            {months:[7,8,9],                note:"July to September; cheap standing tickets open great music to all"},
   lordmayor:        {months:[11],                   note:"Second Saturday of November; free to watch along the whole route"},
+  // Pubs and Bars
+  georgeinn:     {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"The courtyard is especially lovely on summer evenings; the fires make winter just as appealing"},
+  prospectwhi:   {months:[4,5,6,7,8,9],                 note:"The riverside terrace is wonderful in warm weather; summer evenings are the best time"},
+  yeoldechesh:   {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Especially atmospheric in winter with the fires going; busy at lunchtimes year-round"},
+  lambflag:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; summer afternoons spill outside into the alley"},
+  blackfriar:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"The extraordinary interior is best appreciated on a quiet weekday lunchtime"},
+  princesslouise:{months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Weekday lunchtimes give the best chance to appreciate the interior at a gentle pace"},
+  tenbells:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Lively all year; especially good on Sunday afternoons after the Spitalfields market"},
+  dogandduck:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Tiny so always feels intimate; early evenings before the Soho crowds arrive are best"},
+  thegrapes:     {months:[4,5,6,7,8,9],                 note:"The riverside view is finest in summer; the upstairs dining room is good year-round"},
+  connaughtbar:  {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; book well ahead — it fills quickly at any time"},
+  savoybar:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; the pre-theatre period (6 to 7pm) has a lovely buzz"},
+  swiftsoho:     {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; the basement bar is quieter and more atmospheric earlier in the evening"},
+  // Restaurants and Dining
+  rules:         {months:[9,10,11,12,1,2],              note:"At its best in autumn and winter when the game season is in full swing"},
+  dishoom:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; weekday mornings for breakfast are often quieter than evenings"},
+  stjohnrest:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; lunchtimes are slightly easier to book than evenings"},
+  barrafina:     {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; arrive when doors open at noon or 5pm to minimise the queue"},
+  padella:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; arrive at opening time for the shortest wait"},
+  ledbury:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; book several weeks ahead as it fills very quickly"},
+  brat:          {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; the rooftop terrace is worth asking for in summer"},
+  sketch:        {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; afternoon tea in the Gallery room is the easiest booking to get"},
+  wolseley:      {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; breakfast is the most relaxed and arguably the best meal of the day"},
+  ottolenghi:    {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Good all year; early weekday lunches are the quietest and most enjoyable time"},
+  hawksmoor:     {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; book well ahead for weekend evenings"},
+  sabor:         {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; the ground-floor counter seats are the most exciting but the most in demand"},
+  baosoho:       {months:[1,2,3,4,5,6,7,8,9,10,11,12], note:"Open all year; arrive at opening for the shortest queue"},
+  rivercafe:     {months:[4,5,6,7,8,9],                 note:"The riverside terrace makes summer lunches here feel special; book months ahead"},
+  petersham:     {months:[4,5,6,7,8,9],                 note:"The greenhouse garden is at its best in late spring and summer; book well ahead"},
 };
 
 
 
 
+
+
+/* ------------------------------------------------------------------ *
+ * Ratings — keyed by place id.
+ * google: Google Maps rating / 5
+ * tripadvisor: Tripadvisor rating / 5
+ * michelin: number of stars or 'bib' for Bib Gourmand
+ * award: notable recognition
+ * ------------------------------------------------------------------ */
+const SCORES = {
+  // Royal London
+  buckingham:{google:4.5,tripadvisor:4.5}, royalmews:{google:4.6,tripadvisor:4.5},
+  stjamespalace:{google:4.5,tripadvisor:4.0}, kensingtonpalace:{google:4.6,tripadvisor:4.5},
+  hamptoncourt:{google:4.7,tripadvisor:4.5}, banqueting:{google:4.4,tripadvisor:4.0},
+  horseguards:{google:4.4,tripadvisor:4.0},
+  // History
+  tower:{google:4.6,tripadvisor:4.5}, towerbridge:{google:4.7,tripadvisor:4.5},
+  parliament:{google:4.5,tripadvisor:4.5}, bigben:{google:4.7,tripadvisor:4.5},
+  churchill:{google:4.7,tripadvisor:4.5}, hmsbelfast:{google:4.5,tripadvisor:4.5},
+  ornc:{google:4.6,tripadvisor:4.5}, cuttysark:{google:4.4,tripadvisor:4.5},
+  observatory:{google:4.6,tripadvisor:4.5}, londonwall:{google:4.3,tripadvisor:4.0},
+  // Museums
+  britishmuseum:{google:4.8,tripadvisor:4.5}, nhm:{google:4.8,tripadvisor:4.5},
+  sciencemuseum:{google:4.7,tripadvisor:4.5}, vanda:{google:4.7,tripadvisor:4.5},
+  nationalgallery:{google:4.7,tripadvisor:4.5}, npg:{google:4.7,tripadvisor:4.5},
+  tatemodern:{google:4.7,tripadvisor:4.5}, tatebritain:{google:4.6,tripadvisor:4.5},
+  iwm:{google:4.7,tripadvisor:4.5}, soane:{google:4.8,tripadvisor:4.5},
+  wallace:{google:4.7,tripadvisor:4.5}, courtauld:{google:4.6,tripadvisor:4.5},
+  vandaeast:{google:4.5,tripadvisor:4.0}, londonmuseum:{google:4.5,tripadvisor:4.0},
+  // Landmarks
+  shard:{google:4.5,tripadvisor:4.0}, eye:{google:4.5,tripadvisor:4.5},
+  stpauls:{google:4.7,tripadvisor:4.5}, gherkin:{google:4.4,tripadvisor:4.0},
+  battersea:{google:4.4,tripadvisor:4.0}, trafalgar:{google:4.7,tripadvisor:4.5},
+  millennium:{google:4.5,tripadvisor:4.5},
+  // Parks
+  hydepark:{google:4.7,tripadvisor:4.5}, kensingtongardens:{google:4.7,tripadvisor:4.5},
+  regentspark:{google:4.7,tripadvisor:4.5}, stjamespark:{google:4.8,tripadvisor:4.5},
+  richmondpark:{google:4.8,tripadvisor:4.5}, hampstead:{google:4.7,tripadvisor:4.5},
+  kew:{google:4.7,tripadvisor:4.5}, greenwichpark:{google:4.7,tripadvisor:4.5},
+  primrose:{google:4.7,tripadvisor:4.5},
+  // Markets
+  borough:{google:4.6,tripadvisor:4.5}, camden:{google:4.3,tripadvisor:4.0},
+  portobello:{google:4.5,tripadvisor:4.5}, covent:{google:4.5,tripadvisor:4.5},
+  spitalfields:{google:4.3,tripadvisor:4.0}, columbia:{google:4.7,tripadvisor:4.5},
+  bricklane:{google:4.4,tripadvisor:4.0}, harrods:{google:4.5,tripadvisor:4.0},
+  leadenhall:{google:4.6,tripadvisor:4.5},
+  // Views
+  skygarden:{google:4.5,tripadvisor:4.5}, horizon22:{google:4.7,tripadvisor:4.5},
+  orbit:{google:4.3,tripadvisor:4.0}, cablecar:{google:4.2,tripadvisor:4.0},
+  // Faith
+  abbey:{google:4.7,tripadvisor:4.5}, westminstercathedral:{google:4.6,tripadvisor:4.5},
+  southwark:{google:4.7,tripadvisor:4.5}, neasden:{google:4.8,tripadvisor:4.5},
+  centralmosque:{google:4.4,tripadvisor:4.0},
+  // Theatre
+  westend:{google:4.6,tripadvisor:4.5}, globe:{google:4.8,tripadvisor:4.5},
+  albert:{google:4.7,tripadvisor:4.5}, southbank:{google:4.6,tripadvisor:4.5},
+  sadlerseast:{google:4.5,tripadvisor:4.0},
+  // Neighbourhoods
+  soho:{google:4.6,tripadvisor:4.5}, chinatown:{google:4.5,tripadvisor:4.5},
+  nottinghill:{google:4.6,tripadvisor:4.5}, shoreditch:{google:4.4,tripadvisor:4.0},
+  southbankarea:{google:4.7,tripadvisor:4.5}, greenwich:{google:4.6,tripadvisor:4.5},
+  littlevenice:{google:4.6,tripadvisor:4.5},
+  // Family
+  zoo:{google:4.5,tripadvisor:4.5}, sealife:{google:4.4,tripadvisor:4.0},
+  harrypotter:{google:4.8,tripadvisor:4.5}, transport:{google:4.7,tripadvisor:4.5},
+  tussauds:{google:4.3,tripadvisor:4.0}, paddington:{google:4.3,tripadvisor:4.0},
+  // Events
+  changing:{google:4.5,tripadvisor:4.5}, trooping:{google:4.7,tripadvisor:4.5},
+  carnival:{google:4.6,tripadvisor:4.5}, chelsea:{google:4.8,tripadvisor:4.5},
+  wimbledon:{google:4.8,tripadvisor:4.5}, nye:{google:4.6,tripadvisor:4.5},
+  winter:{google:4.6,tripadvisor:4.5}, proms:{google:4.8,tripadvisor:4.5},
+  lordmayor:{google:4.4,tripadvisor:4.0},
+  // Pubs and Bars
+  georgeinn:{google:4.5,tripadvisor:4.5},
+  prospectwhi:{google:4.3,tripadvisor:4.0},
+  yeoldechesh:{google:4.4,tripadvisor:4.0},
+  lambflag:{google:4.5,tripadvisor:4.0},
+  blackfriar:{google:4.5,tripadvisor:4.5},
+  princesslouise:{google:4.6,tripadvisor:4.5},
+  tenbells:{google:4.5,tripadvisor:4.0},
+  dogandduck:{google:4.4,tripadvisor:4.0},
+  thegrapes:{google:4.5,tripadvisor:4.0},
+  connaughtbar:{google:4.7,tripadvisor:4.5,award:"World's No.1 Bar"},
+  savoybar:{google:4.7,tripadvisor:4.5,award:"Icon Award"},
+  swiftsoho:{google:4.6,tripadvisor:4.5},
+  // Restaurants and Dining
+  rules:{google:4.4,tripadvisor:4.5},
+  dishoom:{google:4.7,tripadvisor:4.5},
+  stjohnrest:{google:4.5,tripadvisor:4.5,michelin:1},
+  barrafina:{google:4.6,tripadvisor:4.5,michelin:1},
+  padella:{google:4.7,tripadvisor:4.5},
+  ledbury:{google:4.7,tripadvisor:4.5,michelin:2},
+  brat:{google:4.6,tripadvisor:4.5,michelin:1},
+  sketch:{google:4.4,tripadvisor:4.0,michelin:2},
+  wolseley:{google:4.5,tripadvisor:4.5},
+  ottolenghi:{google:4.6,tripadvisor:4.5},
+  hawksmoor:{google:4.7,tripadvisor:4.5},
+  sabor:{google:4.7,tripadvisor:4.5,michelin:1},
+  baosoho:{google:4.5,tripadvisor:4.0},
+  rivercafe:{google:4.6,tripadvisor:4.5,michelin:1},
+  petersham:{google:4.6,tripadvisor:4.5,michelin:1},
+};
 
 const ALL_FEATURES = Array.from(new Set(RAW.flatMap(p => p.features))).sort();
 
@@ -1358,6 +1683,18 @@ const MapTabIcon = () => (
 const CheckIcon = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
 );
+const InstallIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2v12"/><path d="m8 10 4 4 4-4"/>
+    <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+  </svg>
+);
+const PhoneIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5" y="2" width="14" height="20" rx="2"/>
+    <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>
+  </svg>
+);
 const LocationIcon = ({ active }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3.5"/>
@@ -1370,6 +1707,45 @@ const ServerIcon = () => (
     <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
   </svg>
 );
+
+/* ------------------------------------------------------------------ *
+ * Score bar — shows ratings from multiple platforms
+ * ------------------------------------------------------------------ */
+function ScoreBar({ id }) {
+  const s = SCORES[id];
+  if (!s) return null;
+  const michelinLabel =
+    s.michelin === 1 ? '1 Michelin Star' :
+    s.michelin === 2 ? '2 Michelin Stars' :
+    s.michelin === 3 ? '3 Michelin Stars' :
+    s.michelin === 'bib' ? 'Bib Gourmand' : null;
+
+  return (
+    <div className="score-bar" aria-label="Ratings">
+      {s.google !== undefined && (
+        <span className="score-chip sc-google" title={'Google Maps: ' + s.google + ' out of 5'}>
+          <span className="sc-label">Google</span>
+          <span className="sc-stars">{'★'.repeat(Math.round(s.google))}</span>
+          <span className="sc-val">{s.google}</span>
+        </span>
+      )}
+      {s.tripadvisor !== undefined && (
+        <span className="score-chip sc-ta" title={'Tripadvisor: ' + s.tripadvisor + ' out of 5'}>
+          <span className="sc-label">Tripadvisor</span>
+          <span className="sc-val">{s.tripadvisor}</span>
+        </span>
+      )}
+      {michelinLabel && (
+        <span className="score-chip sc-michelin" title={michelinLabel}>
+          {michelinLabel}
+        </span>
+      )}
+      {s.award && (
+        <span className="score-chip sc-award" title={s.award}>{s.award}</span>
+      )}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ *
  * Best time bar
@@ -1490,16 +1866,25 @@ function FilterSheet({ open, onClose, cat, setCat, feats, toggleFeat, clearAll,
  * Settings modal — shows server config status clearly
  * ------------------------------------------------------------------ */
 function SettingsModal({ open, onClose,
-  token, onToken, onForgetToken, tokenSaved, tokenFromServer,
+  tokenSaved, tokenFromServer,
+  onToken, onForgetToken,
   anthropicKey, onAnthropicKey, onForgetAnthropicKey, anthropicSaved,
-  serverHasApiKey, canInstall, onInstall }) {
+  serverHasApiKey, canInstall, onInstall, isIOS, isInstalled }) {
 
   const [showToken, setShowToken] = useState(false);
   const [showKey,   setShowKey]   = useState(false);
   const [draftToken, setDraftToken] = useState('');
   const [draftKey,   setDraftKey]   = useState('');
 
-  useEffect(() => { if (open) { setDraftToken(token||''); setDraftKey(anthropicKey||''); } }, [open, token, anthropicKey]);
+  useEffect(() => {
+    if (open) {
+      // SECURITY: only pre-fill with the user's own saved token (from localStorage).
+      // The server token (_CFG.mapboxToken) must NEVER appear in an input field.
+      setDraftToken(lsGet(LS_TOKEN) || '');
+      setDraftKey(lsGet(LS_ANTHROPIC) || '');
+    }
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const h = e => { if (e.key === 'Escape') onClose(); };
@@ -1509,17 +1894,7 @@ function SettingsModal({ open, onClose,
 
   if (!open) return null;
 
-  const tokenSource = tokenSaved
-    ? 'Saved in browser (overrides server)'
-    : tokenFromServer
-      ? 'Loaded from server config'
-      : null;
-
-  const keySource = anthropicSaved
-    ? 'Saved in browser (used as fallback)'
-    : serverHasApiKey
-      ? 'Configured on server'
-      : null;
+  const serverActive = tokenFromServer && !tokenSaved;
 
   return (
     <div className="settings-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -1529,39 +1904,53 @@ function SettingsModal({ open, onClose,
           <button className="settings-close" onClick={onClose} aria-label="Close">&#x2715;</button>
         </div>
 
+        {/* ── Mapbox token ─────────────────────────────────────── */}
         <div className="settings-section">
           <span className="settings-label">Mapbox token</span>
-          <p className="settings-hint">
-            Enables the live map. Get a free public token at{' '}
-            <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer">mapbox.com</a>.
-            {' '}On Vercel, set <code>MAPBOX_TOKEN</code> as an environment variable to pre-fill this for all visitors.
+
+          {serverActive ? (
+            <div className="settings-server-badge">
+              <ServerIcon /> Server token active — map is working
+            </div>
+          ) : !tokenSaved ? (
+            <p className="settings-hint">
+              No server token configured. Get a free public token at{' '}
+              <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer">mapbox.com</a>
+              {' '}(starts with pk.) or set <code>MAPBOX_TOKEN</code> in Vercel.
+            </p>
+          ) : null}
+
+          <p className="settings-hint" style={{ marginTop: serverActive ? '8px' : '0' }}>
+            {serverActive
+              ? 'Your override token (optional — leave blank to keep using the server token):'
+              : 'Enter your own Mapbox public token to enable the map:'}
           </p>
           <div className="settings-field">
             <input type={showToken ? 'text' : 'password'} value={draftToken}
-              onChange={e => setDraftToken(e.target.value)} placeholder="pk.your_token_here"
+              onChange={e => setDraftToken(e.target.value)}
+              placeholder={serverActive ? 'Optional — server token is active' : 'pk.your_token_here'}
               onKeyDown={e => { if (e.key === 'Enter' && isTokenValid(draftToken)) { onToken(draftToken.trim()); onClose(); } }} />
             <button className="settings-toggle" onClick={() => setShowToken(v => !v)}>{showToken ? 'Hide' : 'Show'}</button>
           </div>
           <div className="settings-row">
-            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={() => { onToken(draftToken.trim()); onClose(); }}>
+            <button className="btn primary" disabled={!isTokenValid(draftToken)}
+              onClick={() => { onToken(draftToken.trim()); onClose(); }}>
               Save and apply
             </button>
-            <button className="btn ghost" onClick={() => { onForgetToken(); setDraftToken(''); }}>Forget</button>
-            {tokenSource && (
-              <span className="settings-saved">
-                {tokenFromServer && !tokenSaved ? <ServerIcon /> : <CheckIcon />}
-                {tokenSource}
-              </span>
+            {tokenSaved && (
+              <button className="btn ghost" onClick={() => { onForgetToken(); setDraftToken(''); }}>Forget</button>
             )}
+            {tokenSaved && <span className="settings-saved"><CheckIcon /> Your token — overrides server</span>}
           </div>
         </div>
 
+        {/* ── Anthropic API key ─────────────────────────────────── */}
         <div className="settings-section">
           <span className="settings-label">Anthropic API key</span>
           <p className="settings-hint">
             {serverHasApiKey
-              ? 'The server has an API key configured. Update all works for everyone without entering a personal key. You can still save your own key below to use it as a fallback.'
-              : 'No server key detected. Set ANTHROPIC_KEY in your Vercel environment variables, or enter your own key here to enable Update all.'}
+              ? 'Server key active — Update all works for everyone. You can optionally save your own key as a personal fallback.'
+              : 'Set ANTHROPIC_KEY in Vercel, or enter your own key here to enable Update all.'}
           </p>
           {serverHasApiKey && (
             <div className="settings-server-badge">
@@ -1570,29 +1959,56 @@ function SettingsModal({ open, onClose,
           )}
           <div className="settings-field">
             <input type={showKey ? 'text' : 'password'} value={draftKey}
-              onChange={e => setDraftKey(e.target.value)} placeholder="sk-ant-api03-..."
+              onChange={e => setDraftKey(e.target.value)}
+              placeholder={serverHasApiKey ? 'Optional personal override' : 'sk-ant-api03-...'}
               onKeyDown={e => { if (e.key === 'Enter' && isApiKeyValid(draftKey)) onAnthropicKey(draftKey.trim()); }} />
             <button className="settings-toggle" onClick={() => setShowKey(v => !v)}>{showKey ? 'Hide' : 'Show'}</button>
           </div>
           <div className="settings-row">
-            <button className="btn primary" disabled={!isApiKeyValid(draftKey)} onClick={() => onAnthropicKey(draftKey.trim())}>Save</button>
-            <button className="btn ghost" onClick={() => { onForgetAnthropicKey(); setDraftKey(''); }}>Forget</button>
-            {keySource && <span className="settings-saved"><CheckIcon />{keySource}</span>}
+            <button className="btn primary" disabled={!isApiKeyValid(draftKey)}
+              onClick={() => onAnthropicKey(draftKey.trim())}>Save</button>
+            {anthropicSaved && (
+              <button className="btn ghost" onClick={() => { onForgetAnthropicKey(); setDraftKey(''); }}>Forget</button>
+            )}
+            {anthropicSaved && <span className="settings-saved"><CheckIcon /> Saved in browser</span>}
           </div>
         </div>
 
-        {canInstall && (
-          <div className="settings-section">
-            <span className="settings-label">Install app</span>
-            <p className="settings-hint">Add this guide to your home screen for quick access and offline use.</p>
-            <button className="btn primary" onClick={onInstall}>Install to device</button>
-          </div>
-        )}
+        {/* ── Install app ───────────────────────────────────────── */}
+        <div className="settings-section">
+          <span className="settings-label">Install app</span>
+          {isInstalled ? (
+            <p className="settings-hint">
+              Already installed on this device.
+            </p>
+          ) : canInstall ? (
+            <>
+              <p className="settings-hint">Install as a native app for home screen access and offline use.</p>
+              <button className="btn primary" style={{ gap: 8 }} onClick={onInstall}>
+                <InstallIcon /> Install to device
+              </button>
+            </>
+          ) : isIOS ? (
+            <>
+              <p className="settings-hint">To add to your iPhone or iPad home screen:</p>
+              <ol className="settings-ios-steps">
+                <li>Open this page in <strong>Safari</strong></li>
+                <li>Tap the share button <span className="ios-share">⬆</span> at the bottom</li>
+                <li>Choose <strong>Add to Home Screen</strong></li>
+                <li>Tap <strong>Add</strong></li>
+              </ol>
+            </>
+          ) : (
+            <p className="settings-hint">
+              Open this page in Chrome or Edge on Android or desktop to install it as an app.
+            </p>
+          )}
+        </div>
 
         <p className="settings-foot">
-          Browser-saved tokens are stored only in this device via localStorage. They are sent
-          only to Mapbox and to <code>/api/agent</code> (which proxies to Anthropic server-side,
-          never exposing your key to other users).
+          Browser-saved tokens live only in this device's localStorage and are sent only to
+          Mapbox and <code>/api/agent</code> (server-side Anthropic proxy). The server token
+          is never shown or stored client-side.
         </p>
       </div>
     </div>
@@ -1787,6 +2203,7 @@ function Card({ loc, selected, onSelect, status }) {
       <div className="tags">
         {loc.features.map(f => <span className={'tag' + (f === 'Newly opened' ? ' new' : '')} key={f}>{f}</span>)}
       </div>
+      <ScoreBar id={loc.id} />
       <BestTimeBar id={loc.id} color={cat.color} />
       <div className="field"><span className="lbl">Close by</span><span className="val">{loc.near.join(', ')}</span></div>
       <div className="field why"><span className="lbl">Why see it</span><span className="val">{loc.why}</span></div>
@@ -1844,6 +2261,14 @@ function App() {
   const [canInstall,      setCanInstall]     = useState(false);
   const cancelRef    = useRef(false);
   const controlsRef  = useRef(null);
+
+  // Detect iOS (no beforeinstallprompt, needs manual Add to Home Screen)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+  // Detect if already running as installed PWA
+  const [isInstalled] = useState(() =>
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (typeof window.navigator.standalone === 'boolean' && window.navigator.standalone)
+  );
 
   /* --- Resize detection --- */
   useEffect(() => {
@@ -2021,11 +2446,13 @@ function App() {
     <div className={isMobile && mobileTab === 'map' ? 'map-mode' : ''}>
       <SettingsModal
         open={settingsOpen} onClose={() => setSettingsOpen(false)}
-        token={token} onToken={handleToken} onForgetToken={handleForgetToken}
         tokenSaved={tokenSaved} tokenFromServer={tokenFromServer}
+        onToken={handleToken} onForgetToken={handleForgetToken}
         anthropicKey={anthropicKey} onAnthropicKey={handleApiKey}
         onForgetAnthropicKey={handleForgetApiKey} anthropicSaved={anthropicSaved}
-        serverHasApiKey={serverHasApiKey} canInstall={canInstall} onInstall={installApp}
+        serverHasApiKey={serverHasApiKey}
+        canInstall={canInstall} onInstall={installApp}
+        isIOS={isIOS} isInstalled={isInstalled}
       />
       <FilterSheet
         open={filterOpen} onClose={() => setFilterOpen(false)}
@@ -2041,6 +2468,24 @@ function App() {
         <p className="sub">Every place worth seeing, grouped by what it is. Search, filter, and find it on the map.</p>
         <p className="dateline">Updated June 2026</p>
       </header>
+
+      {/* Mobile PWA install banner — shown when installable and not yet installed */}
+      {!isInstalled && (canInstall || isIOS) && (
+        <div className="pwa-banner">
+          <div className="pwa-banner-text">
+            <PhoneIcon />
+            <span>
+              {canInstall
+                ? 'Install London Guide for offline access'
+                : 'Add to Home Screen for offline access'}
+            </span>
+          </div>
+          {canInstall
+            ? <button className="pwa-install-pill" onClick={installApp}>Install</button>
+            : <button className="pwa-install-pill" onClick={() => setSettingsOpen(true)}>How to</button>
+          }
+        </div>
+      )}
 
       <div className="controls" ref={controlsRef}>
         <div className="wrap controls-inner">
@@ -2148,7 +2593,7 @@ function App() {
 
       <footer className="footer">
         <div className="wrap">
-          <p>London, A Visitor's Field Guide. Built by Hamid. Details current as of June 2026. Opening times and prices change, so check ahead before you set out.</p>
+          <p>London, A Visitor's Field Guide. Built by <a href="https://www.basri.co.uk" target="_blank" rel="noopener noreferrer">Hamid Basri</a>. Details current as of June 2026. Opening times and prices change, so check ahead before you set out.</p>
           <p>Map powered by Mapbox. Agent powered by Claude. Set <code>MAPBOX_TOKEN</code> and <code>ANTHROPIC_KEY</code> in Vercel to activate both for all visitors.</p>
           <p style={{ marginTop: '8px', fontSize: '11px', opacity: 0.6 }}>v0.1.0</p>
         </div>
