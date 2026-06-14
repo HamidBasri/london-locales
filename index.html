@@ -1253,8 +1253,8 @@ const lsDel = k     => { try { localStorage.removeItem(k); } catch(_) {} };
  * the placeholders remain — isTokenValid() returns false for them,
  * which is a safe fallback so users can enter tokens manually.
  * ------------------------------------------------------------------ */
-const _ENV_TOKEN     = '@@MAPBOX_TOKEN@@';     // pk.* or placeholder
-const _ENV_HAS_AGENT = @@HAS_ANTHROPIC_KEY@@;  // true | false
+const _ENV_TOKEN     = '@@MAPBOX_TOKEN@@';              // pk.* or placeholder — replaced by build.js
+const _ENV_HAS_AGENT = '@@HAS_ANTHROPIC_KEY@@' === 'true'; // false until build.js replaces with 'true'
 
 /* ------------------------------------------------------------------ *
  * Helpers
