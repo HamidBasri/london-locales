@@ -14,6 +14,9 @@
 <link rel="manifest" href="/manifest.json" />
 <link rel="apple-touch-icon" href="/icon-192.svg" />
 
+<!-- Build-time config: populated by build.js from Vercel env vars -->
+<script src="/config.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -1247,14 +1250,11 @@ const lsSet = (k,v) => { try { localStorage.setItem(k,v); return true; } catch(_
 const lsDel = k     => { try { localStorage.removeItem(k); } catch(_) {} };
 
 /* ------------------------------------------------------------------ *
- * Build-time environment constants.
- * build.js replaces these placeholder strings with real Vercel env var
- * values before the file is deployed. When served without a build step
- * the placeholders remain — isTokenValid() returns false for them,
- * which is a safe fallback so users can enter tokens manually.
+ * Build-time config — populated by build.js from Vercel env vars.
+ * Falls back to empty defaults when build.js has not run (e.g. local
+ * file:// preview). Users can always enter tokens manually in Settings.
  * ------------------------------------------------------------------ */
-const _ENV_TOKEN     = '@@MAPBOX_TOKEN@@';              // pk.* or placeholder — replaced by build.js
-const _ENV_HAS_AGENT = '@@HAS_ANTHROPIC_KEY@@' === 'true'; // false until build.js replaces with 'true'
+const _CFG = window.LONDON_GUIDE_CONFIG || { mapboxToken: '', hasAnthropicKey: false };
 
 /* ------------------------------------------------------------------ *
  * Helpers
@@ -1793,12 +1793,12 @@ function App() {
   const [feats,           setFeats]          = useState([]);
   const [showAllFeats,    setShowAllFeats]   = useState(false);
   const [selectedId,      setSelectedId]     = useState(null);
-  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || (isTokenValid(_ENV_TOKEN) ? _ENV_TOKEN : ''));
+  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || (isTokenValid(_CFG.mapboxToken) ? _CFG.mapboxToken : ''));
   const [tokenSaved,      setTokenSaved]     = useState(() => !!lsGet(LS_TOKEN));
-  const [tokenFromServer, setTokenFromServer]= useState(() => !lsGet(LS_TOKEN) && isTokenValid(_ENV_TOKEN));
+  const [tokenFromServer, setTokenFromServer]= useState(() => !lsGet(LS_TOKEN) && isTokenValid(_CFG.mapboxToken));
   const [anthropicKey,    setAnthropicKey]   = useState(() => lsGet(LS_ANTHROPIC) || '');
   const [anthropicSaved,  setAnthropicSaved] = useState(() => !!lsGet(LS_ANTHROPIC));
-  const [serverHasApiKey, setServerHasApiKey]= useState(_ENV_HAS_AGENT);
+  const [serverHasApiKey, setServerHasApiKey]= useState(_CFG.hasAnthropicKey);
   const [themeId,         setThemeId]        = useState(() => { const s = lsGet(LS_THEME); return s && THEMES.find(t => t.id === s) ? s : DEFAULT_THEME.id; });
   const [settingsOpen,    setSettingsOpen]   = useState(false);
   const [filterOpen,      setFilterOpen]     = useState(false);
@@ -1811,22 +1811,6 @@ function App() {
   const [canInstall,      setCanInstall]     = useState(false);
   const cancelRef    = useRef(false);
   const controlsRef  = useRef(null);
-
-  /* --- Runtime config check (confirms agent key, not needed for map token) --- */
-  useEffect(() => {
-    fetch('/api/config', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : null)
-      .then(cfg => {
-        if (!cfg) return;
-        setServerHasApiKey(!!cfg.hasAnthropicKey);
-        // Apply server token only if user has no saved token AND build-time token is absent
-        if (cfg.mapboxToken && isTokenValid(cfg.mapboxToken) && !lsGet(LS_TOKEN) && !isTokenValid(_ENV_TOKEN)) {
-          setToken(cfg.mapboxToken);
-          setTokenFromServer(true);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   /* --- Resize detection --- */
   useEffect(() => {
@@ -1871,8 +1855,7 @@ function App() {
   const handleToken       = useCallback(t  => { setToken(t); setTokenSaved(lsSet(LS_TOKEN, t)); setTokenFromServer(false); }, []);
   const handleForgetToken = useCallback(() => {
     lsDel(LS_TOKEN); setTokenSaved(false);
-    // Restore build-time injected token if available, otherwise clear
-    const fallback = isTokenValid(_ENV_TOKEN) ? _ENV_TOKEN : '';
+    const fallback = isTokenValid(_CFG.mapboxToken) ? _CFG.mapboxToken : '';
     setToken(fallback);
     setTokenFromServer(!!fallback);
   }, []);
