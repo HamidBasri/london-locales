@@ -55,7 +55,7 @@
   }
   a { color: var(--claret); }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
-  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 16px; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
 
   /* ── Masthead ────────────────────────────────────────────────── */
   .masthead { padding: 28px 0 16px; text-align: center; }
@@ -441,7 +441,7 @@
      Desktop overrides  (>= 1000px)
      ══════════════════════════════════════════════════════════════ */
   @media (min-width: 1000px) {
-    .wrap { padding: 0 22px; }
+    .wrap { padding: 0 28px; }
 
     /* Show desktop controls elements */
     .count    { display: inline; }
@@ -1247,6 +1247,16 @@ const lsSet = (k,v) => { try { localStorage.setItem(k,v); return true; } catch(_
 const lsDel = k     => { try { localStorage.removeItem(k); } catch(_) {} };
 
 /* ------------------------------------------------------------------ *
+ * Build-time environment constants.
+ * build.js replaces these placeholder strings with real Vercel env var
+ * values before the file is deployed. When served without a build step
+ * the placeholders remain — isTokenValid() returns false for them,
+ * which is a safe fallback so users can enter tokens manually.
+ * ------------------------------------------------------------------ */
+const _ENV_TOKEN     = '@@MAPBOX_TOKEN@@';     // pk.* or placeholder
+const _ENV_HAS_AGENT = @@HAS_ANTHROPIC_KEY@@;  // true | false
+
+/* ------------------------------------------------------------------ *
  * Helpers
  * ------------------------------------------------------------------ */
 const isTokenValid  = t => typeof t === 'string' && /^pk\./.test(t.trim());
@@ -1783,12 +1793,12 @@ function App() {
   const [feats,           setFeats]          = useState([]);
   const [showAllFeats,    setShowAllFeats]   = useState(false);
   const [selectedId,      setSelectedId]     = useState(null);
-  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || '');
+  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || (isTokenValid(_ENV_TOKEN) ? _ENV_TOKEN : ''));
   const [tokenSaved,      setTokenSaved]     = useState(() => !!lsGet(LS_TOKEN));
-  const [tokenFromServer, setTokenFromServer]= useState(false);
+  const [tokenFromServer, setTokenFromServer]= useState(() => !lsGet(LS_TOKEN) && isTokenValid(_ENV_TOKEN));
   const [anthropicKey,    setAnthropicKey]   = useState(() => lsGet(LS_ANTHROPIC) || '');
   const [anthropicSaved,  setAnthropicSaved] = useState(() => !!lsGet(LS_ANTHROPIC));
-  const [serverHasApiKey, setServerHasApiKey]= useState(false);
+  const [serverHasApiKey, setServerHasApiKey]= useState(_ENV_HAS_AGENT);
   const [themeId,         setThemeId]        = useState(() => { const s = lsGet(LS_THEME); return s && THEMES.find(t => t.id === s) ? s : DEFAULT_THEME.id; });
   const [settingsOpen,    setSettingsOpen]   = useState(false);
   const [filterOpen,      setFilterOpen]     = useState(false);
@@ -1802,20 +1812,20 @@ function App() {
   const cancelRef    = useRef(false);
   const controlsRef  = useRef(null);
 
-  /* --- Fetch server config on mount (Vercel env vars) --- */
+  /* --- Runtime config check (confirms agent key, not needed for map token) --- */
   useEffect(() => {
     fetch('/api/config', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(cfg => {
         if (!cfg) return;
-        // Set Mapbox token from server only if user has no browser-saved token
-        if (cfg.mapboxToken && isTokenValid(cfg.mapboxToken) && !lsGet(LS_TOKEN)) {
+        setServerHasApiKey(!!cfg.hasAnthropicKey);
+        // Apply server token only if user has no saved token AND build-time token is absent
+        if (cfg.mapboxToken && isTokenValid(cfg.mapboxToken) && !lsGet(LS_TOKEN) && !isTokenValid(_ENV_TOKEN)) {
           setToken(cfg.mapboxToken);
           setTokenFromServer(true);
         }
-        setServerHasApiKey(!!cfg.hasAnthropicKey);
       })
-      .catch(() => {}); // Not on Vercel or offline — degrade gracefully
+      .catch(() => {});
   }, []);
 
   /* --- Resize detection --- */
@@ -1860,13 +1870,11 @@ function App() {
   const handleTheme       = useCallback(id => { setThemeId(id); lsSet(LS_THEME, id); }, []);
   const handleToken       = useCallback(t  => { setToken(t); setTokenSaved(lsSet(LS_TOKEN, t)); setTokenFromServer(false); }, []);
   const handleForgetToken = useCallback(() => {
-    lsDel(LS_TOKEN); setTokenSaved(false); setTokenFromServer(false);
-    // Re-apply server token if available
-    fetch('/api/config', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
-      .then(cfg => {
-        if (cfg?.mapboxToken && isTokenValid(cfg.mapboxToken)) { setToken(cfg.mapboxToken); setTokenFromServer(true); }
-        else setToken('');
-      }).catch(() => setToken(''));
+    lsDel(LS_TOKEN); setTokenSaved(false);
+    // Restore build-time injected token if available, otherwise clear
+    const fallback = isTokenValid(_ENV_TOKEN) ? _ENV_TOKEN : '';
+    setToken(fallback);
+    setTokenFromServer(!!fallback);
   }, []);
   const handleApiKey       = useCallback(k  => { setAnthropicKey(k); setAnthropicSaved(lsSet(LS_ANTHROPIC, k)); }, []);
   const handleForgetApiKey = useCallback(() => { lsDel(LS_ANTHROPIC); setAnthropicKey(''); setAnthropicSaved(false); }, []);
