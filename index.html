@@ -85,6 +85,36 @@
 
   /* Search row — always visible */
   .search-row { display: flex; gap: 8px; align-items: center; }
+
+  /* Non-search controls — animate to width 0 when search is focused */
+  .sr-collapsible {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    max-width: 1200px; overflow: hidden;
+    transition: max-width .32s cubic-bezier(.4,0,.2,1),
+                opacity .22s ease,
+                gap .32s cubic-bezier(.4,0,.2,1);
+  }
+  .sf .sr-collapsible {
+    max-width: 0; opacity: 0; gap: 0; pointer-events: none;
+  }
+
+  /* "Done" pill — hidden by default, slides in when search is focused */
+  .sr-done {
+    flex: 0 0 auto; cursor: pointer; white-space: nowrap;
+    font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .01em;
+    background: var(--claret); color: #fff; border: 0;
+    border-radius: 999px;
+    max-width: 0; padding: 8px 0; overflow: hidden;
+    opacity: 0; pointer-events: none;
+    transition: max-width .32s cubic-bezier(.4,0,.2,1),
+                padding .32s cubic-bezier(.4,0,.2,1),
+                opacity .2s ease .06s;
+  }
+  .sf .sr-done {
+    max-width: 80px; padding: 8px 18px;
+    opacity: 1; pointer-events: all;
+  }
+  .sf .sr-done:hover { opacity: .88; }
   .search {
     flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 9px;
     background: var(--stone-card); border: 1px solid var(--line);
@@ -1805,6 +1835,9 @@ function App() {
   const [mobileTab,       setMobileTab]      = useState('list');
   const [isMobile,        setIsMobile]       = useState(() => window.innerWidth < 1000);
   const [status,          setStatus]         = useState({});
+  const [searchFocused,   setSearchFocused]  = useState(false);
+  const blurRef        = useRef(null);
+  const searchInputRef = useRef(null);
   const [updatingAll,     setUpdatingAll]    = useState(false);
   const [updateProgress,  setUpdateProgress] = useState(0);
   const [updateTotal,     setUpdateTotal]    = useState(0);
@@ -1865,6 +1898,21 @@ function App() {
   /* --- Filters --- */
   const toggleFeat = useCallback(f => setFeats(p => p.includes(f) ? p.filter(x => x !== f) : [...p, f]), []);
   const clearAll   = useCallback(() => { setQuery(''); setCat('all'); setFeats([]); }, []);
+
+  /* --- Search row focus expansion --- */
+  const onSearchFocus = useCallback(() => {
+    clearTimeout(blurRef.current);
+    setSearchFocused(true);
+  }, []);
+  const onSearchBlur = useCallback(() => {
+    // Short delay so clicking "Done" can cancel the collapse first
+    blurRef.current = setTimeout(() => setSearchFocused(false), 140);
+  }, []);
+  const onSearchDone = useCallback(() => {
+    clearTimeout(blurRef.current);
+    setSearchFocused(false);
+    searchInputRef.current?.blur();
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -1996,34 +2044,49 @@ function App() {
 
       <div className="controls" ref={controlsRef}>
         <div className="wrap controls-inner">
-          <div className="search-row">
+          <div className={"search-row" + (searchFocused ? " sf" : "")}>
             <div className="search">
               <SearchIcon />
               <label className="visually-hidden" htmlFor="q">Search places</label>
               <input id="q" type="text" placeholder="Search places..."
-                value={query} onChange={e => setQuery(e.target.value)} />
+                value={query} onChange={e => setQuery(e.target.value)}
+                ref={searchInputRef}
+                onFocus={onSearchFocus}
+                onBlur={onSearchBlur} />
             </div>
-            <button className={'filter-badge' + (hasFilters ? ' has-filters' : '')} onClick={() => setFilterOpen(true)}>
-              <FilterIcon />Filters
-              {activeFilterCount > 0 && <span className="filter-dot">{activeFilterCount}</span>}
-            </button>
-            <span className="count">{filtered.length} of {data.length}</span>
-            {hasFilters ? <button className="linkbtn" onClick={clearAll}>Clear</button> : null}
-            <div className="search-tools">
-              {updatingAll ? (
-                <span className="update-progress">
-                  <span className="spinner" />
-                  <span><span className="update-count">{updateProgress}</span>/{updateTotal}</span>
-                  <button className="linkbtn" onClick={cancelUpdate}>Cancel</button>
-                </span>
-              ) : (
-                <button className="btn ghost" onClick={onUpdateAll} disabled={!filtered.length}>
-                  <RefreshIcon /><span className="update-text"> Update all {filtered.length > 0 ? filtered.length : ''}</span>
-                </button>
-              )}
-              <ThemePicker currentTheme={themeId} onTheme={handleTheme} iconOnly={isMobile} />
-              <button className="gear-btn" onClick={() => setSettingsOpen(true)} aria-label="Settings"><GearIcon /></button>
+
+            {/* All non-search controls — collapse into zero-width when focused */}
+            <div className="sr-collapsible">
+              <button className={'filter-badge' + (hasFilters ? ' has-filters' : '')} onClick={() => setFilterOpen(true)}>
+                <FilterIcon />Filters
+                {activeFilterCount > 0 && <span className="filter-dot">{activeFilterCount}</span>}
+              </button>
+              <span className="count">{filtered.length} of {data.length}</span>
+              {hasFilters ? <button className="linkbtn" onClick={clearAll}>Clear</button> : null}
+              <div className="search-tools">
+                {updatingAll ? (
+                  <span className="update-progress">
+                    <span className="spinner" />
+                    <span><span className="update-count">{updateProgress}</span>/{updateTotal}</span>
+                    <button className="linkbtn" onClick={cancelUpdate}>Cancel</button>
+                  </span>
+                ) : (
+                  <button className="btn ghost" onClick={onUpdateAll} disabled={!filtered.length}>
+                    <RefreshIcon /><span className="update-text"> Update all {filtered.length > 0 ? filtered.length : ''}</span>
+                  </button>
+                )}
+                <ThemePicker currentTheme={themeId} onTheme={handleTheme} iconOnly={isMobile} />
+                <button className="gear-btn" onClick={() => setSettingsOpen(true)} aria-label="Settings"><GearIcon /></button>
+              </div>
             </div>
+
+            {/* Single "Done" pill — slides in when search is focused */}
+            <button
+              className="sr-done"
+              onMouseDown={e => e.preventDefault()}
+              onClick={onSearchDone}
+              aria-label="Close search"
+            >Done</button>
           </div>
           <div className="desktop-filters">
             <div className="chiprow" style={{ marginTop:8 }}>
