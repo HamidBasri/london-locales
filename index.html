@@ -2,117 +2,128 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#7C2A33" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="London Guide" />
+<meta name="description" content="Every London landmark worth seeing, with live map, best-time guidance, and agent-powered updates." />
 <title>London, A Visitor's Field Guide</title>
+
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon-192.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.css" rel="stylesheet" />
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.3/mapbox-gl.js"></script>
 
-<!-- React 18.3 is the latest line that ships browser UMD builds, which a single self-contained file needs. -->
+<!-- React 18.3 (latest version with browser UMD builds; React 19 dropped UMD support) -->
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <style>
 
-  :root {
-    --stone: #ECE6DA;
-    --stone-card: #F6F2E9;
-    --stone-deep: #E1D9C8;
-    --ink: #211D17;
-    --ink-soft: #534D43;
-    --ink-faint: #8A8273;
-    --line: #D5CCBA;
-    --line-soft: #E3DBCB;
-    --claret: #7C2A33;
-    --claret-deep: #5E1E26;
-    --brass: #8C6E2B;
-    --thames: #2C5862;
-    --focus: #1f5fbf;
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(33,29,23,.05), 0 10px 28px rgba(33,29,23,.06);
-    --maxw: 1320px;
-    --controls-h: 160px; /* overridden dynamically by ResizeObserver */
-  }
 
+  :root {
+    --stone: #ECE6DA; --stone-card: #F6F2E9; --stone-deep: #E1D9C8;
+    --ink: #211D17; --ink-soft: #534D43; --ink-faint: #8A8273;
+    --line: #D5CCBA; --line-soft: #E3DBCB;
+    --claret: #7C2A33; --claret-deep: #5E1E26;
+    --brass: #8C6E2B; --thames: #2C5862; --focus: #1f5fbf;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(33,29,23,.05), 0 8px 24px rgba(33,29,23,.07);
+    --maxw: 1320px;
+    --controls-h: 60px;   /* overridden by ResizeObserver */
+    --tabs-h: 56px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    background: var(--stone);
-    color: var(--ink);
-    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
+    background: var(--stone); color: var(--ink);
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 15px; line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
   }
-
   .visually-hidden {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
     overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
-
   a { color: var(--claret); }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
-  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 16px; }
 
-  /* Masthead */
-  .masthead { padding: 40px 0 22px; text-align: center; }
-  .kicker { font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 14px; }
+  /* ── Masthead ────────────────────────────────────────────────── */
+  .masthead { padding: 28px 0 16px; text-align: center; }
+  .kicker { font-size: 10px; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px; }
   .nameplate {
     font-family: "Libre Caslon Display", Georgia, serif;
-    font-size: clamp(54px, 12vw, 130px);
+    font-size: clamp(48px, 16vw, 130px);
     line-height: .9; margin: 0; letter-spacing: .01em; color: var(--ink);
   }
   .double-rule { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
-    height: 4px; max-width: 560px; margin: 18px auto 0; }
-  .sub { margin: 16px auto 0; max-width: 640px; color: var(--ink-soft); font-size: 15px; }
-  .dateline { margin-top: 10px; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--brass); font-weight: 600; }
+    height: 4px; max-width: 420px; margin: 14px auto 0; }
+  .sub { margin: 12px auto 0; max-width: 600px; color: var(--ink-soft); font-size: 14px; }
+  .dateline { margin-top: 8px; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--brass); font-weight: 600; }
 
-  /* Controls */
+  /* ── Controls (sticky) ───────────────────────────────────────── */
   .controls {
-    position: sticky; top: 0; z-index: 30;
-    background: color-mix(in srgb, var(--stone) 90%, transparent);
-    backdrop-filter: saturate(140%) blur(8px);
-    border-top: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 40;
+    background: color-mix(in srgb, var(--stone) 92%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--line);
   }
-  .controls-inner { padding: 12px 0 10px; }
-  .search-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .controls-inner { padding: 10px 0; }
+
+  /* Search row — always visible */
+  .search-row { display: flex; gap: 8px; align-items: center; }
   .search {
-    flex: 1 1 220px; display: flex; align-items: center; gap: 10px;
+    flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 9px;
     background: var(--stone-card); border: 1px solid var(--line);
-    border-radius: 999px; padding: 9px 16px; min-width: 0;
+    border-radius: 999px; padding: 9px 14px;
   }
-  .search input { border: 0; background: transparent; outline: none; width: 100%; font: inherit; color: var(--ink); }
+  .search input { border: 0; background: transparent; outline: none; width: 100%; font: inherit; font-size: 14px; color: var(--ink); }
   .search svg { flex: 0 0 auto; color: var(--ink-faint); }
-  .count { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
-  .linkbtn {
-    background: none; border: 0; color: var(--claret); font: inherit;
-    cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0; white-space: nowrap;
-  }
-  .search-tools { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; margin-left: auto; }
+  .search-tools { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .count { font-size: 12px; color: var(--ink-soft); white-space: nowrap; display: none; }
+  .linkbtn { background: none; border: 0; color: var(--claret); font: inherit; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px; padding: 0; white-space: nowrap; display: none; }
 
-  /* Update-all progress */
-  .update-progress {
-    display: flex; align-items: center; gap: 7px; font-size: 12.5px;
-    color: var(--ink-soft); white-space: nowrap;
+  /* Filter badge button (mobile only) */
+  .filter-badge {
+    flex-shrink: 0; cursor: pointer; background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 12px; font: inherit; font-size: 13px; font-weight: 500;
+    color: var(--ink-soft); display: inline-flex; align-items: center; gap: 6px;
+    transition: border-color .15s, color .15s;
   }
+  .filter-badge:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .filter-badge.has-filters { border-color: var(--claret); color: var(--claret); background: color-mix(in srgb, var(--claret) 8%, var(--stone-card)); }
+  .filter-dot {
+    background: var(--claret); color: #fff; font-size: 10px; font-weight: 700;
+    min-width: 16px; height: 16px; border-radius: 999px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Desktop chip rows — hidden on mobile */
+  .desktop-filters { display: none; }
+
+  /* ── Update-all progress ─────────────────────────────────────── */
+  .update-progress { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
   .update-count { font-weight: 600; color: var(--ink); }
+  .update-text { display: none; } /* text hidden on mobile */
 
-  .chiprow {
-    display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px;
-    scrollbar-width: thin; -webkit-overflow-scrolling: touch;
-  }
+  /* ── Chip rows (inside desktop-filters + filter sheet) ───────── */
+  .chiprow { display: flex; gap: 7px; overflow-x: auto; padding: 4px 0 2px;
+    scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
   .chiprow.wrapped { flex-wrap: wrap; overflow: visible; }
   .chip {
     flex: 0 0 auto; cursor: pointer; font: inherit; font-size: 12.5px;
-    border: 1px solid var(--line); background: var(--stone-card);
-    color: var(--ink-soft); border-radius: 999px; padding: 6px 13px;
+    border: 1px solid var(--line); background: var(--stone-card); color: var(--ink-soft);
+    border-radius: 999px; padding: 6px 12px;
     display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
     transition: background .15s, color .15s, border-color .15s;
   }
@@ -120,215 +131,218 @@
   .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
   .chip.active { background: var(--ink); color: var(--stone-card); border-color: var(--ink); }
   .chip.feat.active { background: var(--claret); border-color: var(--claret); color: #fff; }
-  .filters-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); margin: 12px 0 2px; }
+  .filters-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); margin: 10px 0 4px; }
 
-  /* Layout — map top and height track --controls-h set by ResizeObserver */
-  .layout { display: grid; grid-template-columns: 1fr; gap: 26px; padding: 26px 0 70px; }
-  @media (min-width: 1000px) {
-    .layout { grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr); align-items: start; }
-    .col-map {
-      position: sticky;
-      top: calc(var(--controls-h) + 14px);
-      height: calc(100vh - var(--controls-h) - 40px);
-    }
+  /* ── Mobile filter sheet ─────────────────────────────────────── */
+  .sheet-overlay {
+    position: fixed; inset: 0; z-index: 80;
+    background: rgba(33,29,23,.45); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none; transition: opacity .22s;
+  }
+  .sheet-overlay.open { opacity: 1; pointer-events: all; }
+  .filter-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: var(--stone-card); border-radius: 20px 20px 0 0;
+    padding: 0 20px calc(20px + var(--safe-b));
+    max-height: 78dvh; overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform .26s cubic-bezier(.4,0,.2,1);
+  }
+  .sheet-overlay.open .filter-sheet { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 12px auto 18px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .sheet-title { font-family: "Libre Caslon Display", serif; font-size: 20px; margin: 0; }
+  .sheet-done {
+    cursor: pointer; background: var(--ink); color: var(--stone-card); border: 0;
+    border-radius: 999px; padding: 8px 18px; font: inherit; font-size: 13px; font-weight: 600;
+  }
+  .sheet-clear { background: none; border: 0; color: var(--claret); font: inherit; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px; font-size: 13px; }
+  .sheet-section { margin-bottom: 20px; }
+  .sheet-section-label { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 8px; font-weight: 600; }
+
+  /* ── Layout ──────────────────────────────────────────────────── */
+  /* Mobile: single column, map hidden by default */
+  .layout { padding: 20px 0 calc(var(--tabs-h) + var(--safe-b) + 16px); }
+  .col-map { display: none; }
+
+  /* Map-mode: hide list, show map full-height */
+  .map-mode .masthead,
+  .map-mode .footer { display: none; }
+  .map-mode .controls { border-bottom: 1px solid var(--line); }
+  .map-mode .layout { padding: 0; }
+  .map-mode .col-list { display: none; }
+  .map-mode .col-map {
+    display: block;
+    height: calc(100dvh - var(--controls-h) - var(--tabs-h) - var(--safe-b));
   }
 
-  /* Map */
+  /* ── Bottom tab bar (mobile) ─────────────────────────────────── */
+  .mobile-tabs {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    display: flex; background: var(--stone-card);
+    border-top: 1px solid var(--line);
+    padding-bottom: var(--safe-b);
+    box-shadow: 0 -6px 24px rgba(33,29,23,.09);
+  }
+  .tab-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4px; padding: 10px 0;
+    background: none; border: 0; cursor: pointer; font: inherit;
+    font-size: 11px; font-weight: 600; letter-spacing: .02em;
+    color: var(--ink-faint); transition: color .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab-btn.tab-active { color: var(--claret); }
+  .tab-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+
+  /* ── Map card ────────────────────────────────────────────────── */
   .mapcard {
-    border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
-    background: var(--stone-card); box-shadow: var(--shadow); height: 100%;
-    display: flex; flex-direction: column; min-height: 380px;
+    border-radius: var(--radius); overflow: hidden;
+    background: var(--stone-card); box-shadow: var(--shadow);
+    height: 100%; display: flex; flex-direction: column; min-height: 200px;
+    border: 1px solid var(--line);
   }
-  .map { flex: 1 1 auto; min-height: 280px; }
+  .map { flex: 1 1 auto; }
   .map-foot {
-    border-top: 1px solid var(--line-soft); padding: 8px 12px;
-    display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center;
+    border-top: 1px solid var(--line-soft); padding: 7px 12px;
+    display: flex; gap: 6px 12px; flex-wrap: wrap; align-items: center;
     background: var(--stone-card); flex-shrink: 0;
+    font-size: 11px;
   }
-  .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); }
-  .legend-item .dot { width: 9px; height: 9px; border-radius: 50%; }
-
-  /* Location button in map footer */
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-soft); }
+  .legend-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .loc-btn {
     margin-left: auto; flex: 0 0 auto; cursor: pointer; font: inherit; font-size: 12px;
     border: 1px solid var(--line); background: var(--stone-card); border-radius: 999px;
-    padding: 5px 11px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; display: inline-flex; align-items: center; gap: 5px;
     color: var(--ink-soft); transition: border-color .15s, color .15s, background .15s;
+    -webkit-tap-highlight-color: transparent;
   }
   .loc-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
   .loc-btn.loc-active { background: #E3F0FF; border-color: #2196F3; color: #1565C0; }
-  .loc-err { font-size: 11px; color: var(--claret); margin-left: auto; max-width: 200px; }
+  .loc-err { font-size: 11px; color: var(--claret); margin-left: auto; }
+  .token-saved-note { display: flex; align-items: center; gap: 5px; color: var(--ink-faint); white-space: nowrap; }
 
-  /* Location marker */
+  .map-empty {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; padding: 24px 20px; gap: 14px;
+  }
+  .map-empty h3 { font-family: "Libre Caslon Display", serif; font-size: 22px; margin: 0; }
+  .map-empty p { margin: 0; color: var(--ink-soft); max-width: 340px; font-size: 13.5px; }
+  .token-field { display: flex; gap: 8px; width: 100%; max-width: 400px; }
+  .token-field input {
+    flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; font: inherit; background: var(--stone); color: var(--ink);
+  }
+
+  /* ── Location marker ─────────────────────────────────────────── */
   .loc-marker { width: 40px; height: 40px; position: relative; pointer-events: none; }
   .loc-core {
     width: 16px; height: 16px; background: #2196F3; border-radius: 50%;
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    border: 3px solid white; box-shadow: 0 2px 12px rgba(33,150,243,.55); z-index: 2;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    border: 3px solid white; box-shadow: 0 2px 12px rgba(33,150,243,.5); z-index: 2;
   }
   .loc-pulse {
     width: 44px; height: 44px;
     background: rgba(33,150,243,.18); border: 1.5px solid rgba(33,150,243,.35);
     border-radius: 50%; position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation: locpulse 2.2s ease-out infinite;
+    transform: translate(-50%,-50%); animation: locpulse 2.2s ease-out infinite;
   }
   @keyframes locpulse {
-    0% { transform: translate(-50%,-50%) scale(.35); opacity: 1; }
-    100% { transform: translate(-50%,-50%) scale(1.5); opacity: 0; }
+    0%   { transform: translate(-50%,-50%) scale(.3); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1.6); opacity: 0; }
   }
 
-  .map-empty {
-    flex: 1 1 auto; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; text-align: center; padding: 30px 26px; gap: 14px;
-  }
-  .map-empty h3 { font-family: "Libre Caslon Display", serif; font-size: 24px; margin: 0; }
-  .map-empty p { margin: 0; color: var(--ink-soft); max-width: 380px; font-size: 14px; }
-  .token-field { display: flex; gap: 8px; width: 100%; max-width: 420px; }
-  .token-field input {
-    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
-    font: inherit; background: var(--stone); color: var(--ink); min-width: 0;
-  }
-
-  /* Sections + cards */
-  .col-list { display: flex; flex-direction: column; gap: 44px; }
-  .section { scroll-margin-top: calc(var(--controls-h) + 24px); }
-  .sec-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 4px; }
-  .sec-dot { width: 12px; height: 12px; border-radius: 50%; transform: translateY(1px); }
-  .sec-name { font-family: "Libre Caslon Display", serif; font-size: 26px; margin: 0; }
-  .sec-count { font-size: 12px; color: var(--ink-faint); letter-spacing: .04em; }
-  .sec-blurb { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 16px; max-width: 70ch; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 18px; }
+  /* ── Sections + cards ────────────────────────────────────────── */
+  .col-list { display: flex; flex-direction: column; gap: 40px; }
+  .section { scroll-margin-top: calc(var(--controls-h) + 12px); }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 4px; }
+  .sec-dot { width: 11px; height: 11px; border-radius: 50%; transform: translateY(1px); flex-shrink: 0; }
+  .sec-name { font-family: "Libre Caslon Display", serif; font-size: 24px; margin: 0; }
+  .sec-count { font-size: 12px; color: var(--ink-faint); }
+  .sec-blurb { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 14px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
 
   .card {
     background: var(--stone-card); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 18px; display: flex; flex-direction: column; gap: 11px;
-    box-shadow: var(--shadow); transition: border-color .18s, transform .18s, box-shadow .18s;
+    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    box-shadow: var(--shadow); transition: border-color .18s, box-shadow .18s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .card:hover { transform: translateY(-2px); }
-  .card.sel { border-color: var(--claret); box-shadow: 0 0 0 2px color-mix(in srgb, var(--claret) 30%, transparent), var(--shadow); }
-
-  .eyebrow {
-    font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600;
-    display: inline-flex; align-items: center; gap: 7px;
-  }
-  .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .card-title { font-family: "Libre Caslon Display", serif; font-size: 21px; line-height: 1.12; margin: 0; }
+  .card.sel { border-color: var(--claret); box-shadow: 0 0 0 2px color-mix(in srgb, var(--claret) 25%, transparent), var(--shadow); }
+  .eyebrow { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .card-title { font-family: "Libre Caslon Display", serif; font-size: 20px; line-height: 1.15; margin: 0; }
   .desc { margin: 0; color: var(--ink-soft); font-size: 13.5px; }
-
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag {
-    font-size: 11px; color: var(--ink-soft); background: var(--stone-deep);
-    border-radius: 999px; padding: 3px 9px; border: 1px solid var(--line-soft);
-  }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag { font-size: 11px; color: var(--ink-soft); background: var(--stone-deep); border-radius: 999px; padding: 3px 9px; border: 1px solid var(--line-soft); }
   .tag.new { background: color-mix(in srgb, var(--brass) 18%, var(--stone-card)); border-color: var(--brass); color: var(--brass); font-weight: 600; }
-
   .field { font-size: 12.5px; }
-  .field .lbl {
-    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--ink-faint); display: block; margin-bottom: 3px;
-  }
-  .field .val { color: var(--ink); }
-  .why { color: var(--ink); }
+  .field .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 2px; }
   .why .val { font-style: italic; }
-  .note {
-    font-size: 12px; color: var(--brass); background: color-mix(in srgb, var(--brass) 10%, transparent);
-    border-left: 3px solid var(--brass); padding: 6px 10px; border-radius: 0 8px 8px 0;
-  }
-
-  /* Card status bar (for agent update result) */
-  .card-status { display: flex; align-items: center; gap: 8px; min-height: 20px; }
+  .note { font-size: 12px; color: var(--brass); background: color-mix(in srgb, var(--brass) 10%, transparent); border-left: 3px solid var(--brass); padding: 6px 10px; border-radius: 0 8px 8px 0; }
+  .card-status { display: flex; align-items: center; gap: 7px; min-height: 18px; }
   .saved { font-size: 11.5px; color: var(--thames); font-weight: 600; }
-  .err { font-size: 11.5px; color: var(--claret); }
+  .err   { font-size: 11.5px; color: var(--claret); }
 
-  .actions { display: flex; gap: 8px; margin-top: 2px; flex-wrap: wrap; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn {
-    cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600;
-    border-radius: 999px; padding: 8px 14px; border: 1px solid transparent;
-    display: inline-flex; align-items: center; gap: 7px; transition: background .15s, color .15s, border-color .15s;
+    cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+    border-radius: 999px; padding: 9px 16px; border: 1px solid transparent;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: background .15s, color .15s, border-color .15s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .btn:disabled { cursor: default; opacity: .65; }
+  .btn:disabled { cursor: default; opacity: .6; }
   .btn.primary { background: var(--ink); color: var(--stone-card); }
   .btn.primary:hover:not(:disabled) { background: var(--claret); }
   .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
   .btn.ghost:hover:not(:disabled) { border-color: var(--ink-faint); }
-  .spinner {
-    width: 13px; height: 13px; border-radius: 50%;
-    border: 2px solid currentColor; border-right-color: transparent;
-    animation: spin .7s linear infinite; flex: 0 0 auto;
-  }
+  .btn.full { width: 100%; justify-content: center; }
+  .spinner { width: 13px; height: 13px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .empty-state {
-    border: 1px dashed var(--line); border-radius: var(--radius); padding: 40px 24px;
-    text-align: center; color: var(--ink-soft); background: var(--stone-card);
-  }
-  .empty-state h3 { font-family: "Libre Caslon Display", serif; color: var(--ink); margin: 0 0 6px; }
-
-  .footer { border-top: 1px solid var(--line); padding: 26px 0 50px; color: var(--ink-faint); font-size: 12.5px; }
-  .footer p { margin: 4px 0; }
-
-  /* Mapbox marker + popup */
-  .pin {
-    width: 16px; height: 16px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
-    border: 2px solid var(--stone-card); box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer;
-  }
-  .pin:hover { filter: brightness(1.12); }
-  .mapboxgl-popup-content {
-    font-family: "Inter", sans-serif; border-radius: 10px; padding: 12px 14px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  }
-  .pop-eyebrow { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
-  .pop-title { font-family: "Libre Caslon Display", serif; font-size: 17px; margin: 2px 0 4px; color: #211D17; }
-  .pop-why { font-size: 12.5px; color: #534D43; max-width: 220px; }
-
-  /* Best time bar */
+  /* ── Best time bar ───────────────────────────────────────────── */
   .besttime { display: flex; flex-direction: column; gap: 5px; }
   .bt-row { display: flex; align-items: center; gap: 2px; }
   .bt-cell {
     flex: 1; height: 22px; border-radius: 5px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
-    background: var(--stone-deep); color: var(--ink-faint);
-    border: 1px solid var(--line-soft);
-    transition: background .15s, color .15s, border-color .15s;
-    user-select: none; cursor: default;
+    font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    background: var(--stone-deep); color: var(--ink-faint); border: 1px solid var(--line-soft);
+    user-select: none;
   }
   .bt-cell.on { color: #fff; border-color: transparent; }
   .bt-note { font-size: 11.5px; color: var(--ink-faint); font-style: italic; line-height: 1.4; }
 
-  /* Photo links */
-  .photo-links { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  /* ── Photo links ─────────────────────────────────────────────── */
+  .photo-links { display: flex; gap: 7px; flex-wrap: wrap; }
   .photo-link {
     display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
     color: var(--ink-soft); text-decoration: none; border: 1px solid var(--line);
     border-radius: 999px; padding: 5px 11px; background: var(--stone-deep);
-    transition: border-color .15s, color .15s, background .15s; white-space: nowrap;
+    transition: border-color .15s, color .15s; white-space: nowrap;
   }
-  .photo-link:hover { color: var(--claret); border-color: var(--claret); background: color-mix(in srgb, var(--claret) 6%, var(--stone-card)); }
-  .photo-link svg { flex: 0 0 auto; }
+  .photo-link:hover { color: var(--claret); border-color: var(--claret); }
 
-  /* Theme picker */
+  /* ── Theme picker ────────────────────────────────────────────── */
   .theme-wrap { position: relative; flex: 0 0 auto; }
   .theme-btn {
     cursor: pointer; background: var(--stone-card); border: 1px solid var(--line);
-    border-radius: 999px; height: 36px; padding: 0 13px;
-    display: flex; align-items: center; gap: 7px;
-    color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 500;
-    transition: border-color .15s, color .15s; white-space: nowrap;
+    border-radius: 999px; height: 36px; width: 36px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font: inherit;
+    transition: border-color .15s, color .15s;
   }
   .theme-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
   .theme-panel {
     position: absolute; right: 0; top: calc(100% + 8px); z-index: 200;
     background: var(--stone-card); border: 1px solid var(--line);
-    border-radius: var(--radius); box-shadow: 0 12px 40px rgba(33,29,23,.16);
-    padding: 10px; width: 252px; display: flex; flex-direction: column; gap: 2px;
+    border-radius: var(--radius); box-shadow: 0 12px 40px rgba(33,29,23,.18);
+    padding: 10px; width: 248px; display: flex; flex-direction: column; gap: 2px;
   }
-  .theme-panel-title {
-    font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
-    color: var(--ink-faint); margin: 0 6px 6px; font-weight: 600;
-  }
+  .theme-panel-title { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint); margin: 0 6px 6px; font-weight: 600; }
   .theme-option {
     display: flex; align-items: center; gap: 10px; padding: 9px 10px;
     border-radius: 9px; cursor: pointer; border: 1.5px solid transparent;
@@ -338,68 +352,12 @@
   .theme-option:hover { background: var(--stone-deep); }
   .theme-option.thm-active { border-color: var(--claret); background: color-mix(in srgb, var(--claret) 8%, var(--stone-card)); }
   .thm-swatches { display: flex; gap: 4px; flex: 0 0 auto; }
-  .thm-swatch { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.12); flex: 0 0 auto; }
+  .thm-swatch { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,.12); }
   .thm-info { display: flex; flex-direction: column; gap: 1px; }
-  .thm-name { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .thm-name { font-size: 13px; font-weight: 600; }
   .thm-desc { font-size: 11px; color: var(--ink-faint); }
 
-  /* Settings modal */
-  .settings-overlay {
-    position: fixed; inset: 0; z-index: 500;
-    background: rgba(33,29,23,.45); backdrop-filter: blur(3px);
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  .settings-modal {
-    background: var(--stone-card); border: 1px solid var(--line);
-    border-radius: calc(var(--radius) + 4px); box-shadow: 0 24px 64px rgba(33,29,23,.24);
-    width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 0;
-    max-height: calc(100vh - 40px); overflow-y: auto;
-  }
-  .settings-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 22px 16px; border-bottom: 1px solid var(--line);
-    position: sticky; top: 0; background: var(--stone-card); z-index: 1;
-  }
-  .settings-title { font-family: "Libre Caslon Display", serif; font-size: 22px; margin: 0; }
-  .settings-close {
-    cursor: pointer; background: var(--stone-deep); border: 1px solid var(--line);
-    border-radius: 50%; width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--ink-soft); font: inherit; font-size: 18px;
-    transition: background .15s, color .15s;
-  }
-  .settings-close:hover { background: var(--line); color: var(--ink); }
-  .settings-section {
-    padding: 20px 22px; display: flex; flex-direction: column; gap: 10px;
-    border-bottom: 1px solid var(--line-soft);
-  }
-  .settings-section:last-of-type { border-bottom: 0; }
-  .settings-label {
-    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
-    font-weight: 700; color: var(--ink-faint);
-  }
-  .settings-hint { font-size: 13px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
-  .settings-field {
-    display: flex; gap: 6px; align-items: center;
-  }
-  .settings-field input {
-    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px;
-    font: inherit; font-size: 13px; background: var(--stone); color: var(--ink); min-width: 0;
-    font-family: monospace;
-  }
-  .settings-field input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
-  .settings-toggle {
-    cursor: pointer; background: var(--stone-deep); border: 1px solid var(--line);
-    border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 12px;
-    color: var(--ink-soft); white-space: nowrap;
-    transition: border-color .15s;
-  }
-  .settings-toggle:hover { border-color: var(--ink-faint); }
-  .settings-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .settings-saved { font-size: 12px; color: var(--thames); font-weight: 600; display: flex; align-items: center; gap: 5px; }
-  .settings-foot {
-    padding: 14px 22px 20px; font-size: 11.5px; color: var(--ink-faint); line-height: 1.5;
-  }
+  /* ── Gear button ─────────────────────────────────────────────── */
   .gear-btn {
     cursor: pointer; background: var(--stone-card); border: 1px solid var(--line);
     border-radius: 50%; width: 36px; height: 36px; flex: 0 0 auto;
@@ -408,37 +366,159 @@
   }
   .gear-btn:hover { border-color: var(--ink-faint); color: var(--ink); }
 
+  /* ── Settings modal ──────────────────────────────────────────── */
+  .settings-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(33,29,23,.48); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .settings-modal {
+    background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: calc(var(--radius) + 4px); box-shadow: 0 24px 64px rgba(33,29,23,.26);
+    width: 100%; max-width: 480px; display: flex; flex-direction: column;
+    max-height: calc(100dvh - 40px); overflow-y: auto;
+  }
+  .settings-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 14px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--stone-card); z-index: 1;
+  }
+  .settings-title { font-family: "Libre Caslon Display", serif; font-size: 22px; margin: 0; }
+  .settings-close {
+    cursor: pointer; background: var(--stone-deep); border: 1px solid var(--line);
+    border-radius: 50%; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font: inherit; font-size: 18px;
+    transition: background .15s;
+  }
+  .settings-close:hover { background: var(--line); color: var(--ink); }
+  .settings-section { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--line-soft); }
+  .settings-section:last-of-type { border-bottom: 0; }
+  .settings-label { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; color: var(--ink-faint); }
+  .settings-hint { font-size: 13px; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+  .settings-field { display: flex; gap: 6px; align-items: center; }
+  .settings-field input {
+    flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 12px; font: inherit; font-size: 13px; font-family: monospace;
+    background: var(--stone); color: var(--ink);
+  }
+  .settings-field input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .settings-toggle {
+    cursor: pointer; background: var(--stone-deep); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 12px;
+    color: var(--ink-soft); white-space: nowrap; transition: border-color .15s;
+  }
+  .settings-toggle:hover { border-color: var(--ink-faint); }
+  .settings-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .settings-saved { font-size: 12px; color: var(--thames); font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .settings-source { font-size: 11.5px; color: var(--ink-faint); font-style: italic; }
+  .settings-foot { padding: 12px 20px 18px; font-size: 11.5px; color: var(--ink-faint); line-height: 1.5; }
+
+  /* ── Empty state + footer ────────────────────────────────────── */
+  .empty-state { border: 1px dashed var(--line); border-radius: var(--radius); padding: 36px 20px;
+    text-align: center; color: var(--ink-soft); background: var(--stone-card); }
+  .empty-state h3 { font-family: "Libre Caslon Display", serif; color: var(--ink); margin: 0 0 6px; }
+  .footer { border-top: 1px solid var(--line); padding: 22px 0 40px; color: var(--ink-faint); font-size: 12.5px; }
+  .footer p { margin: 4px 0; }
+
+  /* ── Mapbox overrides ────────────────────────────────────────── */
+  .pin {
+    width: 15px; height: 15px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    border: 2px solid var(--stone-card); box-shadow: 0 1px 4px rgba(0,0,0,.35); cursor: pointer;
+  }
+  .mapboxgl-popup-content { font-family: "Inter", sans-serif; border-radius: 10px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  .pop-eyebrow { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; }
+  .pop-title { font-family: "Libre Caslon Display", serif; font-size: 17px; margin: 2px 0 4px; color: #211D17; }
+  .pop-why { font-size: 12.5px; color: #534D43; max-width: 200px; }
+
+  /* ── Reduced motion ──────────────────────────────────────────── */
   @media (prefers-reduced-motion: reduce) {
-    * { animation-duration: .001ms !important; transition: none !important; }
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     Desktop overrides  (>= 1000px)
+     ══════════════════════════════════════════════════════════════ */
+  @media (min-width: 1000px) {
+    .wrap { padding: 0 22px; }
+
+    /* Show desktop controls elements */
+    .count    { display: inline; }
+    .linkbtn  { display: inline; }
+    .update-text { display: inline; }
+    .filter-badge { display: none; }
+    .desktop-filters { display: block; }
+
+    /* Theme button: icon + label */
+    .theme-btn { width: auto; padding: 0 13px; gap: 7px; font-size: 13px; font-weight: 500; }
+
+    /* Side-by-side layout */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
+      align-items: start;
+      gap: 26px;
+      padding: 26px 0 70px;
+    }
+    .col-map {
+      display: block !important;  /* always visible on desktop */
+      position: sticky;
+      top: calc(var(--controls-h) + 14px);
+      height: calc(100dvh - var(--controls-h) - 40px);
+    }
+    .map-mode .col-list { display: flex !important; }
+    .map-mode .col-map  { display: block !important; position: sticky; height: calc(100dvh - var(--controls-h) - 40px); }
+    .map-mode .masthead { display: block; }
+    .map-mode .footer   { display: block; }
+
+    /* Hide mobile-only elements */
+    .mobile-tabs { display: none; }
+
+    .section { scroll-margin-top: calc(var(--controls-h) + 24px); }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 18px; }
+    .card { padding: 18px; gap: 11px; }
+    .card:hover { transform: translateY(-2px); }
+    .masthead { padding: 40px 0 22px; }
+    .sub { font-size: 15px; }
+  }
+  .settings-server-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: color-mix(in srgb, var(--thames) 12%, var(--stone-card));
+    border: 1px solid color-mix(in srgb, var(--thames) 40%, var(--line));
+    color: var(--thames); font-size: 12px; font-weight: 600;
+    border-radius: 8px; padding: 6px 12px;
+  }
+  .token-saved-note {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--ink-faint); margin-left: auto;
+  }
+  .token-saved-note button {
+    background: none; border: 0; color: var(--ink-faint); cursor: pointer;
+    font: inherit; font-size: 11px; text-decoration: underline; padding: 0;
+  }
+  code {
+    font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+    font-size: .9em; background: var(--stone-deep); padding: 1px 5px;
+    border-radius: 4px; color: var(--ink);
   }
 
 </style>
 </head>
 <body>
+
+<script>
+/* Register service worker (works on Vercel HTTPS; no-op from file://) */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .catch(function() {});
+  });
+}
+</script>
+
 <div id="root"></div>
 
 <script type="text/babel" data-presets="react">
-
-const { useState, useMemo, useEffect, useRef, useCallback } = React;
-
-/* ------------------------------------------------------------------ *
- * Add your Mapbox public token here to make the live map appear on
- * load. You can also enter it in Settings (gear icon) at any time.
- * ------------------------------------------------------------------ */
-const MAPBOX_TOKEN = "";
-
-/* ------------------------------------------------------------------ *
- * Client-side persistence via namespaced localStorage keys.
- * All reads/writes are try-catched so restricted storage never breaks the app.
- * ------------------------------------------------------------------ */
-const LS_TOKEN        = "lfg:mapbox_token";
-const LS_THEME        = "lfg:theme_id";
-const LS_ANTHROPIC    = "lfg:anthropic_key";
-
-function lsGet(key) { try { return localStorage.getItem(key) || null; } catch (_) { return null; } }
-function lsSet(key, value) { try { localStorage.setItem(key, value); return true; } catch (_) { return false; } }
-function lsDel(key) { try { localStorage.removeItem(key); } catch (_) {} }
-
 /* ------------------------------------------------------------------ *
  * Themes - each defines a full set of CSS custom properties.
  * Apply a theme by calling applyTheme(themeId).
@@ -522,6 +602,8 @@ const CATEGORIES = [
   { key: "events",     name: "Events and Festivals",    color: "#8E3B6B", blurb: "Seasonal highlights worth planning a trip around." },
 ];
 const CAT = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
+
+
 
 
 const RAW = [
@@ -1122,12 +1204,39 @@ const BEST_TIME = {
 
 
 
-// Unique feature tags, used to build the filter row.
+
+
 const ALL_FEATURES = Array.from(new Set(RAW.flatMap(p => p.features))).sort();
-const isTokenValid  = t => typeof t === "string" && /^pk\./.test(t.trim());
-const isApiKeyValid = k => typeof k === "string" && k.trim().length > 10;
+
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+/* ------------------------------------------------------------------ *
+ * Capture beforeinstallprompt before React starts.
+ * ------------------------------------------------------------------ */
+let _installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  if (window.__LFG_INSTALL_READY__) window.__LFG_INSTALL_READY__();
+});
+
+/* ------------------------------------------------------------------ *
+ * localStorage helpers — namespaced, never throw.
+ * ------------------------------------------------------------------ */
+const LS_TOKEN     = 'lfg:mapbox_token';
+const LS_THEME     = 'lfg:theme_id';
+const LS_ANTHROPIC = 'lfg:anthropic_key';
+const lsGet = k     => { try { return localStorage.getItem(k) || null; } catch(_) { return null; } };
+const lsSet = (k,v) => { try { localStorage.setItem(k,v); return true; } catch(_) { return false; } };
+const lsDel = k     => { try { localStorage.removeItem(k); } catch(_) {} };
+
+/* ------------------------------------------------------------------ *
+ * Helpers
+ * ------------------------------------------------------------------ */
+const isTokenValid  = t => typeof t === 'string' && /^pk\./.test(t.trim());
+const isApiKeyValid = k => typeof k === 'string' && k.trim().length > 20;
 const prefersReducedMotion = () =>
-  window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ------------------------------------------------------------------ *
@@ -1153,14 +1262,16 @@ const CameraIcon = () => (
     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
   </svg>
 );
-const ExternalLinkIcon = () => (
+const ExtLinkIcon = () => (
   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
   </svg>
 );
 const PaletteIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/>
+    <circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/>
     <path d="M12 2C6.5 2 2 6.5 2 12a10 10 0 0 0 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
   </svg>
 );
@@ -1170,39 +1281,60 @@ const GearIcon = () => (
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
   </svg>
 );
-const LocationIcon = ({ active }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-    <path d="M12 8a4 4 0 1 0 4 4"/>
+const FilterIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+  </svg>
+);
+const ListIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round">
+    <rect x="3" y="5"    width="18" height="3" rx="1.5" fill="currentColor" stroke="none"/>
+    <rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="currentColor" stroke="none"/>
+    <rect x="3" y="16"   width="18" height="3" rx="1.5" fill="currentColor" stroke="none"/>
+  </svg>
+);
+const MapTabIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+    <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
   </svg>
 );
 const CheckIcon = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
 );
+const LocationIcon = ({ active }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3.5"/>
+    <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+  </svg>
+);
+const ServerIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+    <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+  </svg>
+);
 
 /* ------------------------------------------------------------------ *
  * Best time bar
  * ------------------------------------------------------------------ */
-const MONTH_LABELS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
-const MONTH_FULL   = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTH_LABELS = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+const MONTH_FULL   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 function BestTimeBar({ id, color }) {
   const bt = BEST_TIME[id];
   if (!bt) return null;
-  const { months, note } = bt;
   return (
     <div className="besttime">
       <span className="lbl">Best time to visit</span>
-      <div className="bt-row" role="img" aria-label={"Best months: " + months.map(m => MONTH_FULL[m-1]).join(", ")}>
-        {MONTH_LABELS.map((abbr, i) => {
-          const on = months.includes(i + 1);
-          return (
-            <span key={i} className={"bt-cell" + (on ? " on" : "")}
-              style={on ? { background: color } : {}} title={MONTH_FULL[i]}>{abbr}</span>
-          );
+      <div className="bt-row" role="img" aria-label={'Best months: ' + bt.months.map(m => MONTH_FULL[m-1]).join(', ')}>
+        {MONTH_LABELS.map((a, i) => {
+          const on = bt.months.includes(i + 1);
+          return <span key={i} className={'bt-cell' + (on ? ' on' : '')}
+            style={on ? { background: color } : {}} title={MONTH_FULL[i]}>{a}</span>;
         })}
       </div>
-      {note && <span className="bt-note">{note}</span>}
+      {bt.note && <span className="bt-note">{bt.note}</span>}
     </div>
   );
 }
@@ -1210,37 +1342,32 @@ function BestTimeBar({ id, color }) {
 /* ------------------------------------------------------------------ *
  * Theme picker
  * ------------------------------------------------------------------ */
-function ThemePicker({ currentTheme, onTheme }) {
+function ThemePicker({ currentTheme, onTheme, iconOnly }) {
   const [open, setOpen] = React.useState(false);
   const wrapRef = useRef(null);
   useEffect(() => {
     if (!open) return;
-    const onKey = e => { if (e.key === "Escape") setOpen(false); };
+    const onKey  = e => { if (e.key === 'Escape') setOpen(false); };
     const onDown = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onDown);
-    return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onDown); };
+    document.addEventListener('keydown', onKey); document.addEventListener('mousedown', onDown);
+    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); };
   }, [open]);
   const active = THEMES.find(t => t.id === currentTheme) || THEMES[0];
   return (
     <div className="theme-wrap" ref={wrapRef}>
       <button className="theme-btn" onClick={() => setOpen(v => !v)} aria-label="Choose theme" aria-expanded={open}>
-        <PaletteIcon />{active.name}
+        <PaletteIcon />{!iconOnly && <span>{active.name}</span>}
       </button>
       {open && (
-        <div className="theme-panel" role="listbox" aria-label="Theme options">
-          <p className="theme-panel-title">Choose a theme</p>
+        <div className="theme-panel" role="listbox">
+          <p className="theme-panel-title">Theme</p>
           {THEMES.map(t => (
-            <button key={t.id}
-              className={"theme-option" + (t.id === currentTheme ? " thm-active" : "")}
+            <button key={t.id} className={'theme-option' + (t.id === currentTheme ? ' thm-active' : '')}
               role="option" aria-selected={t.id === currentTheme}
               onClick={() => { onTheme(t.id); setOpen(false); }}>
-              <div className="thm-swatches">
-                {t.palette.map((c, i) => <span key={i} className="thm-swatch" style={{ background: c }} />)}
-              </div>
+              <div className="thm-swatches">{t.palette.map((c,i) => <span key={i} className="thm-swatch" style={{ background: c }} />)}</div>
               <div className="thm-info">
-                <span className="thm-name">{t.name}</span>
-                <span className="thm-desc">{t.desc}</span>
+                <span className="thm-name">{t.name}</span><span className="thm-desc">{t.desc}</span>
               </div>
             </button>
           ))}
@@ -1251,74 +1378,165 @@ function ThemePicker({ currentTheme, onTheme }) {
 }
 
 /* ------------------------------------------------------------------ *
- * Settings modal (Mapbox token + Anthropic API key)
+ * Mobile filter sheet
  * ------------------------------------------------------------------ */
-function SettingsModal({ open, onClose, token, onToken, onForgetToken, tokenSaved,
-                         anthropicKey, onAnthropicKey, onForgetAnthropicKey, anthropicSaved }) {
-  const [showToken,  setShowToken]  = useState(false);
-  const [showKey,    setShowKey]    = useState(false);
-  const [draftToken, setDraftToken] = useState("");
-  const [draftKey,   setDraftKey]   = useState("");
-
-  useEffect(() => {
-    if (open) { setDraftToken(token || ""); setDraftKey(anthropicKey || ""); }
-  }, [open, token, anthropicKey]);
-
+function FilterSheet({ open, onClose, cat, setCat, feats, toggleFeat, clearAll,
+                        showAllFeats, setShowAllFeats, featuresToShow }) {
   useEffect(() => {
     if (!open) return;
-    const h = e => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", h);
-    return () => document.removeEventListener("keydown", h);
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [open, onClose]);
+  const activeCount = (cat !== 'all' ? 1 : 0) + feats.length;
+  return (
+    <div className={'sheet-overlay' + (open ? ' open' : '')} onClick={onClose}>
+      <div className="filter-sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <div className="sheet-head">
+          <h2 className="sheet-title">Filters</h2>
+          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+            {activeCount > 0 && <button className="sheet-clear" onClick={clearAll}>Clear all</button>}
+            <button className="sheet-done" onClick={onClose}>Done</button>
+          </div>
+        </div>
+        <div className="sheet-section">
+          <p className="sheet-section-label">Category</p>
+          <div className="chiprow wrapped">
+            <button className={'chip' + (cat === 'all' ? ' active' : '')} onClick={() => setCat('all')}>All</button>
+            {CATEGORIES.map(c => (
+              <button key={c.key} className={'chip' + (cat === c.key ? ' active' : '')}
+                onClick={() => setCat(cat === c.key ? 'all' : c.key)}>
+                <span className="dot" style={{ background: c.color }} />{c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="sheet-section">
+          <p className="sheet-section-label">Features</p>
+          <div className="chiprow wrapped">
+            {featuresToShow.map(f => (
+              <button key={f} className={'chip feat' + (feats.includes(f) ? ' active' : '')} onClick={() => toggleFeat(f)}>{f}</button>
+            ))}
+            {ALL_FEATURES.length > 10 && (
+              <button className="chip" onClick={() => setShowAllFeats(v => !v)}>
+                {showAllFeats ? 'Fewer' : 'More...'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * Settings modal — shows server config status clearly
+ * ------------------------------------------------------------------ */
+function SettingsModal({ open, onClose,
+  token, onToken, onForgetToken, tokenSaved, tokenFromServer,
+  anthropicKey, onAnthropicKey, onForgetAnthropicKey, anthropicSaved,
+  serverHasApiKey, canInstall, onInstall }) {
+
+  const [showToken, setShowToken] = useState(false);
+  const [showKey,   setShowKey]   = useState(false);
+  const [draftToken, setDraftToken] = useState('');
+  const [draftKey,   setDraftKey]   = useState('');
+
+  useEffect(() => { if (open) { setDraftToken(token||''); setDraftKey(anthropicKey||''); } }, [open, token, anthropicKey]);
+  useEffect(() => {
+    if (!open) return;
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
   }, [open, onClose]);
 
   if (!open) return null;
 
-  const saveToken = () => { if (draftToken.trim()) onToken(draftToken.trim()); };
-  const saveKey   = () => { if (draftKey.trim())   onAnthropicKey(draftKey.trim()); };
+  const tokenSource = tokenSaved
+    ? 'Saved in browser (overrides server)'
+    : tokenFromServer
+      ? 'Loaded from server config'
+      : null;
+
+  const keySource = anthropicSaved
+    ? 'Saved in browser (used as fallback)'
+    : serverHasApiKey
+      ? 'Configured on server'
+      : null;
 
   return (
     <div className="settings-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div className="settings-modal" role="dialog" aria-modal="true" aria-labelledby="set-title">
         <div className="settings-head">
-          <h2 className="settings-title" id="settings-title">Settings</h2>
-          <button className="settings-close" onClick={onClose} aria-label="Close settings">&#x2715;</button>
+          <h2 className="settings-title" id="set-title">Settings</h2>
+          <button className="settings-close" onClick={onClose} aria-label="Close">&#x2715;</button>
         </div>
 
         <div className="settings-section">
           <span className="settings-label">Mapbox token</span>
-          <p className="settings-hint">Enables the live map. Get a free public token at <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer">mapbox.com</a>. Starts with pk.</p>
+          <p className="settings-hint">
+            Enables the live map. Get a free public token at{' '}
+            <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer">mapbox.com</a>.
+            {' '}On Vercel, set <code>MAPBOX_TOKEN</code> as an environment variable to pre-fill this for all visitors.
+          </p>
           <div className="settings-field">
-            <input type={showToken ? "text" : "password"} value={draftToken}
+            <input type={showToken ? 'text' : 'password'} value={draftToken}
               onChange={e => setDraftToken(e.target.value)} placeholder="pk.your_token_here"
-              onKeyDown={e => { if (e.key === "Enter") saveToken(); }} />
-            <button className="settings-toggle" onClick={() => setShowToken(v => !v)}>{showToken ? "Hide" : "Show"}</button>
+              onKeyDown={e => { if (e.key === 'Enter' && isTokenValid(draftToken)) { onToken(draftToken.trim()); onClose(); } }} />
+            <button className="settings-toggle" onClick={() => setShowToken(v => !v)}>{showToken ? 'Hide' : 'Show'}</button>
           </div>
           <div className="settings-row">
-            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={saveToken}>Save and apply</button>
-            <button className="btn ghost" onClick={() => { onForgetToken(); setDraftToken(""); }}>Forget</button>
-            {tokenSaved && <span className="settings-saved"><CheckIcon /> Saved in browser</span>}
+            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={() => { onToken(draftToken.trim()); onClose(); }}>
+              Save and apply
+            </button>
+            <button className="btn ghost" onClick={() => { onForgetToken(); setDraftToken(''); }}>Forget</button>
+            {tokenSource && (
+              <span className="settings-saved">
+                {tokenFromServer && !tokenSaved ? <ServerIcon /> : <CheckIcon />}
+                {tokenSource}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="settings-section">
           <span className="settings-label">Anthropic API key</span>
-          <p className="settings-hint">Required for "Update all with agent" when using this file outside Claude.ai. Starts with sk-ant-.</p>
+          <p className="settings-hint">
+            {serverHasApiKey
+              ? 'The server has an API key configured. Update all works for everyone without entering a personal key. You can still save your own key below to use it as a fallback.'
+              : 'No server key detected. Set ANTHROPIC_KEY in your Vercel environment variables, or enter your own key here to enable Update all.'}
+          </p>
+          {serverHasApiKey && (
+            <div className="settings-server-badge">
+              <ServerIcon /> Agent key active on server
+            </div>
+          )}
           <div className="settings-field">
-            <input type={showKey ? "text" : "password"} value={draftKey}
+            <input type={showKey ? 'text' : 'password'} value={draftKey}
               onChange={e => setDraftKey(e.target.value)} placeholder="sk-ant-api03-..."
-              onKeyDown={e => { if (e.key === "Enter") saveKey(); }} />
-            <button className="settings-toggle" onClick={() => setShowKey(v => !v)}>{showKey ? "Hide" : "Show"}</button>
+              onKeyDown={e => { if (e.key === 'Enter' && isApiKeyValid(draftKey)) onAnthropicKey(draftKey.trim()); }} />
+            <button className="settings-toggle" onClick={() => setShowKey(v => !v)}>{showKey ? 'Hide' : 'Show'}</button>
           </div>
           <div className="settings-row">
-            <button className="btn primary" disabled={!isApiKeyValid(draftKey)} onClick={saveKey}>Save</button>
-            <button className="btn ghost" onClick={() => { onForgetAnthropicKey(); setDraftKey(""); }}>Forget</button>
-            {anthropicSaved && <span className="settings-saved"><CheckIcon /> Saved in browser</span>}
+            <button className="btn primary" disabled={!isApiKeyValid(draftKey)} onClick={() => onAnthropicKey(draftKey.trim())}>Save</button>
+            <button className="btn ghost" onClick={() => { onForgetAnthropicKey(); setDraftKey(''); }}>Forget</button>
+            {keySource && <span className="settings-saved"><CheckIcon />{keySource}</span>}
           </div>
         </div>
 
+        {canInstall && (
+          <div className="settings-section">
+            <span className="settings-label">Install app</span>
+            <p className="settings-hint">Add this guide to your home screen for quick access and offline use.</p>
+            <button className="btn primary" onClick={onInstall}>Install to device</button>
+          </div>
+        )}
+
         <p className="settings-foot">
-          Both values are stored only in this browser via localStorage under namespaced keys.
-          They are never sent to any server other than Mapbox and Anthropic directly when you use the respective features.
+          Browser-saved tokens are stored only in this device via localStorage. They are sent
+          only to Mapbox and to <code>/api/agent</code> (which proxies to Anthropic server-side,
+          never exposing your key to other users).
         </p>
       </div>
     </div>
@@ -1326,80 +1544,71 @@ function SettingsModal({ open, onClose, token, onToken, onForgetToken, tokenSave
 }
 
 /* ------------------------------------------------------------------ *
- * Map panel — with live location tracking
+ * Map panel
  * ------------------------------------------------------------------ */
-function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, tokenSaved, mapStyle }) {
-  const containerRef  = useRef(null);
-  const mapRef        = useRef(null);
-  const markersRef    = useRef({});
-  const openPopupRef  = useRef(null);
-  const locMarkerRef  = useRef(null);
-  const watchIdRef    = useRef(null);
-  const prevStyleRef  = useRef(null);
-  const [draftToken,  setDraftToken]  = useState("");
+function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, tokenSaved, tokenFromServer, mapStyle, mapActive }) {
+  const containerRef = useRef(null);
+  const mapRef       = useRef(null);
+  const markersRef   = useRef({});
+  const openPopupRef = useRef(null);
+  const locMarkerRef = useRef(null);
+  const watchIdRef   = useRef(null);
+  const prevStyleRef = useRef(null);
+  const hasFlewRef   = useRef(false);
+  const [draftToken,  setDraftToken]  = useState('');
   const [ready,       setReady]       = useState(false);
-  const [locTracking, setLocTracking] = useState(false);
+  const [locActive,   setLocActive]   = useState(false);
   const [locError,    setLocError]    = useState(null);
-  const [locPos,      setLocPos]      = useState(null);
-  const hasFlewToLoc  = useRef(false);
 
-  // Create map once a valid token is present.
   useEffect(() => {
     if (!isTokenValid(token) || !containerRef.current || mapRef.current) return;
     mapboxgl.accessToken = token.trim();
-    const map = new mapboxgl.Map({
-      container: containerRef.current, style: mapStyle,
-      center: [-0.118, 51.509], zoom: 10.2, attributionControl: true,
-    });
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
-    map.on("load", () => { prevStyleRef.current = mapStyle; setReady(true); });
+    const map = new mapboxgl.Map({ container: containerRef.current, style: mapStyle,
+      center: [-0.118, 51.509], zoom: 10.2 });
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+    map.on('load', () => { prevStyleRef.current = mapStyle; setReady(true); });
     mapRef.current = map;
-    return () => {
-      map.remove(); mapRef.current = null; setReady(false); prevStyleRef.current = null;
-    };
+    return () => { map.remove(); mapRef.current = null; setReady(false); prevStyleRef.current = null; };
   }, [token]);
 
-  // Switch style when theme changes.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || prevStyleRef.current === null) return;
-    if (prevStyleRef.current === mapStyle) return;
-    prevStyleRef.current = mapStyle;
-    setReady(false);
-    map.setStyle(mapStyle);
-    map.once("style.load", () => setReady(true));
+    if (!map || prevStyleRef.current === null || prevStyleRef.current === mapStyle) return;
+    prevStyleRef.current = mapStyle; setReady(false);
+    map.setStyle(mapStyle); map.once('style.load', () => setReady(true));
   }, [mapStyle]);
 
-  // Rebuild place markers whenever visible list or ready state changes.
+  useEffect(() => {
+    if (mapActive && mapRef.current && ready) setTimeout(() => mapRef.current?.resize(), 60);
+  }, [mapActive, ready]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;
-    Object.values(markersRef.current).forEach(m => m.remove());
-    markersRef.current = {};
+    Object.values(markersRef.current).forEach(m => m.remove()); markersRef.current = {};
     items.forEach(loc => {
       const colour = CAT[loc.cat].color;
-      const el = document.createElement("div");
-      el.className = "pin"; el.style.background = colour;
-      el.setAttribute("role", "button"); el.setAttribute("aria-label", loc.name);
-      el.addEventListener("click", () => onSelect(loc.id));
+      const el = document.createElement('div');
+      el.className = 'pin'; el.style.background = colour;
+      el.setAttribute('aria-label', loc.name);
+      el.addEventListener('click', () => onSelect(loc.id));
       const popup = new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(
         '<div class="pop-eyebrow" style="color:' + colour + '">' + CAT[loc.cat].name + '</div>' +
         '<div class="pop-title">' + loc.name + '</div>' +
         '<div class="pop-why">' + loc.why + '</div>'
       );
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat([loc.lng, loc.lat]).setPopup(popup).addTo(map);
-      markersRef.current[loc.id] = marker;
+      markersRef.current[loc.id] = new mapboxgl.Marker({ element: el })
+        .setLngLat([loc.lng, loc.lat]).setPopup(popup).addTo(map);
     });
   }, [items, ready, onSelect]);
 
-  // Fly to selected place.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !selectedId) return;
     const loc = items.find(i => i.id === selectedId);
     const marker = markersRef.current[selectedId];
     if (!loc || !marker) return;
-    if (openPopupRef.current && openPopupRef.current.isOpen()) openPopupRef.current.remove();
+    if (openPopupRef.current?.isOpen()) openPopupRef.current.remove();
     const target = { center: [loc.lng, loc.lat], zoom: Math.max(map.getZoom(), 13) };
     prefersReducedMotion() ? map.jumpTo(target) : map.flyTo({ ...target, speed: 1.1, essential: true });
     const popup = marker.getPopup();
@@ -1407,69 +1616,53 @@ function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, 
     openPopupRef.current = popup;
   }, [selectedId, ready, items]);
 
-  // Update or create the location marker whenever position changes.
-  useEffect(() => {
+  const updateLocMarker = useCallback((lat, lng) => {
     const map = mapRef.current;
-    if (!map || !ready || !locPos) return;
-    const { lat, lng } = locPos;
+    if (!map || !ready) return;
     if (!locMarkerRef.current) {
-      const el = document.createElement("div");
-      el.className = "loc-marker";
+      const el = document.createElement('div');
+      el.className = 'loc-marker';
       el.innerHTML = '<div class="loc-pulse"></div><div class="loc-core"></div>';
-      locMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: "center" })
+      locMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
         .setLngLat([lng, lat]).addTo(map);
     } else {
       locMarkerRef.current.setLngLat([lng, lat]);
     }
-    // Fly to user on first fix only.
-    if (!hasFlewToLoc.current) {
-      hasFlewToLoc.current = true;
+    if (!hasFlewRef.current) {
+      hasFlewRef.current = true;
       prefersReducedMotion()
-        ? map.jumpTo({ center: [lng, lat], zoom: 13 })
-        : map.flyTo({ center: [lng, lat], zoom: 13, speed: 1.2, essential: true });
+        ? map.jumpTo({ center: [lng, lat], zoom: 14 })
+        : map.flyTo({ center: [lng, lat], zoom: 14, speed: 1.2, essential: true });
     }
-  }, [locPos, ready]);
-
-  // Clean up location marker when tracking stops.
-  useEffect(() => {
-    if (!locTracking && locMarkerRef.current) {
-      locMarkerRef.current.remove();
-      locMarkerRef.current = null;
-      hasFlewToLoc.current = false;
-    }
-  }, [locTracking]);
-
-  // Clean up watchPosition on unmount.
-  useEffect(() => () => {
-    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
-    if (locMarkerRef.current) { locMarkerRef.current.remove(); locMarkerRef.current = null; }
-  }, []);
+  }, [ready]);
 
   const toggleLocation = useCallback(() => {
-    if (locTracking) {
+    if (locActive) {
       if (watchIdRef.current !== null) { navigator.geolocation.clearWatch(watchIdRef.current); watchIdRef.current = null; }
-      setLocTracking(false); setLocPos(null); setLocError(null);
+      locMarkerRef.current?.remove(); locMarkerRef.current = null;
+      hasFlewRef.current = false; setLocActive(false); setLocError(null);
     } else {
-      if (!navigator.geolocation) { setLocError("Your browser does not support location."); return; }
+      if (!navigator.geolocation) { setLocError('Geolocation not supported.'); return; }
       setLocError(null);
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          setLocPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setLocTracking(true);
-          watchIdRef.current = navigator.geolocation.watchPosition(
-            p => setLocPos({ lat: p.coords.latitude, lng: p.coords.longitude }),
-            e => { setLocError("Location unavailable."); setLocTracking(false); },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
-          );
-        },
-        err => {
-          const msgs = { 1:"Location access was denied.", 2:"Location could not be determined.", 3:"Location request timed out." };
-          setLocError(msgs[err.code] || "Location unavailable.");
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
+      navigator.geolocation.getCurrentPosition(pos => {
+        updateLocMarker(pos.coords.latitude, pos.coords.longitude);
+        setLocActive(true);
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          p => updateLocMarker(p.coords.latitude, p.coords.longitude),
+          () => { setLocError('Location unavailable.'); setLocActive(false); },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 4000 }
+        );
+      }, err => {
+        const m = { 1:'Location access denied.', 2:'Location unavailable.', 3:'Request timed out.' };
+        setLocError(m[err.code] || 'Location unavailable.');
+      }, { enableHighAccuracy: true, timeout: 10000 });
     }
-  }, [locTracking]);
+  }, [locActive, updateLocMarker]);
+
+  useEffect(() => () => {
+    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+    locMarkerRef.current?.remove();
+  }, []);
 
   if (!isTokenValid(token)) {
     return (
@@ -1478,20 +1671,15 @@ function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, 
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" strokeWidth="1.4" strokeLinejoin="round">
             <path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16"/><path d="M15 5v16"/>
           </svg>
-          <h3>See every place on a live map</h3>
-          <p>Enter your Mapbox public token in Settings (gear icon) or paste it below. The full guide works without it.</p>
+          <h3>Live map</h3>
+          <p>Set <code>MAPBOX_TOKEN</code> in Vercel environment variables, or paste your token in Settings.</p>
           <div className="token-field">
-            <label className="visually-hidden" htmlFor="tok">Mapbox public token</label>
+            <label className="visually-hidden" htmlFor="tok">Mapbox token</label>
             <input id="tok" type="text" placeholder="pk.your_token_here" value={draftToken}
               onChange={e => setDraftToken(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && isTokenValid(draftToken)) onToken(draftToken.trim()); }} />
-            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={() => onToken(draftToken.trim())}>
-              Save and show map
-            </button>
+              onKeyDown={e => { if (e.key === 'Enter' && isTokenValid(draftToken)) onToken(draftToken.trim()); }} />
+            <button className="btn primary" disabled={!isTokenValid(draftToken)} onClick={() => onToken(draftToken.trim())}>Apply</button>
           </div>
-          <p style={{ fontSize:"11.5px", color:"var(--ink-faint)", marginTop:4 }}>
-            Your token is stored only in this browser and sent nowhere except Mapbox.
-          </p>
         </div>
       </div>
     );
@@ -1507,20 +1695,18 @@ function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, 
           </span>
         ))}
         {locError && <span className="loc-err">{locError}</span>}
-        <button
-          className={"loc-btn" + (locTracking ? " loc-active" : "")}
-          onClick={toggleLocation}
-          title={locTracking ? "Stop tracking my location" : "Show my location on the map"}
-        >
-          <LocationIcon active={locTracking} />
-          {locTracking ? "Tracking" : "My location"}
+        <button className={'loc-btn' + (locActive ? ' loc-active' : '')} onClick={toggleLocation}
+          title={locActive ? 'Stop tracking' : 'Show my location'}>
+          <LocationIcon active={locActive} />{locActive ? 'Tracking' : 'My location'}
         </button>
-        {tokenSaved && (
-          <span style={{ display:"flex", alignItems:"center", gap:5, fontSize:"11px", color:"var(--ink-faint)" }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--thames)" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-            Token saved
-            <button style={{ background:"none",border:0,color:"var(--ink-faint)",cursor:"pointer",font:"inherit",fontSize:"11px",textDecoration:"underline",textUnderlineOffset:"2px",padding:0 }}
-              onClick={onForgetToken} title="Remove saved token">Forget</button>
+        {(tokenSaved || tokenFromServer) && (
+          <span className="token-saved-note">
+            {tokenFromServer && !tokenSaved ? <ServerIcon /> : <CheckIcon />}
+            {tokenSaved ? 'Your token' : 'Server token'}
+            {tokenSaved && (
+              <button style={{ background:'none',border:0,color:'var(--ink-faint)',cursor:'pointer',font:'inherit',fontSize:'11px',textDecoration:'underline',padding:0 }}
+                onClick={onForgetToken}>Forget</button>
+            )}
           </span>
         )}
       </div>
@@ -1529,54 +1715,39 @@ function MapPanel({ items, selectedId, onSelect, token, onToken, onForgetToken, 
 }
 
 /* ------------------------------------------------------------------ *
- * Card — per-place card; shows update status but no per-card update button.
+ * Card
  * ------------------------------------------------------------------ */
 function Card({ loc, selected, onSelect, status }) {
   const cat = CAT[loc.cat];
-  const photoUrl   = "https://www.google.com/search?q=" + encodeURIComponent(loc.name + " London") + "&tbm=isch";
-  const unsplashUrl = "https://unsplash.com/s/photos/" + encodeURIComponent(loc.name.toLowerCase().replace(/\s+/g, "-") + "-london");
+  const photoUrl    = 'https://www.google.com/search?q=' + encodeURIComponent(loc.name + ' London') + '&tbm=isch';
+  const unsplashUrl = 'https://unsplash.com/s/photos/' + encodeURIComponent(loc.name.toLowerCase().replace(/\s+/g,'-') + '-london');
   return (
-    <article className={"card" + (selected ? " sel" : "")} id={"card-" + loc.id}>
+    <article className={'card' + (selected ? ' sel' : '')} id={'card-' + loc.id}>
       <span className="eyebrow" style={{ color: cat.color }}>
         <span className="dot" style={{ background: cat.color }} />{cat.name}
       </span>
       <h3 className="card-title">{loc.name}</h3>
       <p className="desc">{loc.desc}</p>
-
       <div className="tags">
-        {loc.features.map(f => (
-          <span className={"tag" + (f === "Newly opened" ? " new" : "")} key={f}>{f}</span>
-        ))}
+        {loc.features.map(f => <span className={'tag' + (f === 'Newly opened' ? ' new' : '')} key={f}>{f}</span>)}
       </div>
-
       <BestTimeBar id={loc.id} color={cat.color} />
-
-      <div className="field">
-        <span className="lbl">Close by</span>
-        <span className="val">{loc.near.join(", ")}</span>
-      </div>
-      <div className="field why">
-        <span className="lbl">Why see it</span>
-        <span className="val">{loc.why}</span>
-      </div>
-
+      <div className="field"><span className="lbl">Close by</span><span className="val">{loc.near.join(', ')}</span></div>
+      <div className="field why"><span className="lbl">Why see it</span><span className="val">{loc.why}</span></div>
       {loc.note ? <div className="note">{loc.note}</div> : null}
-
       <div className="photo-links">
         <a className="photo-link" href={photoUrl} target="_blank" rel="noopener noreferrer">
-          <CameraIcon /> Google Photos <ExternalLinkIcon />
+          <CameraIcon /> Photos <ExtLinkIcon />
         </a>
         <a className="photo-link" href={unsplashUrl} target="_blank" rel="noopener noreferrer">
-          <CameraIcon /> Unsplash <ExternalLinkIcon />
+          <CameraIcon /> Unsplash <ExtLinkIcon />
         </a>
       </div>
-
       <div className="card-status">
-        {status === "loading" && <><span className="spinner" /><span style={{fontSize:"12px",color:"var(--ink-soft)"}}>Updating...</span></>}
-        {status === "done"    && <span className="saved"><CheckIcon /> Updated just now</span>}
-        {status === "error"   && <span className="err">Could not reach the agent. Please try again.</span>}
+        {status === 'loading' && <><span className="spinner" /><span style={{fontSize:'12px',color:'var(--ink-soft)'}}>Updating...</span></>}
+        {status === 'done'    && <span className="saved"><CheckIcon /> Updated just now</span>}
+        {status === 'error'   && <span className="err">Agent request failed. Try again.</span>}
       </div>
-
       <div className="actions">
         <button className="btn primary" onClick={() => onSelect(loc.id)}>
           <PinIcon /> Show on map
@@ -1591,67 +1762,111 @@ function Card({ loc, selected, onSelect, status }) {
  * ------------------------------------------------------------------ */
 function App() {
   const [data,            setData]           = useState(RAW);
-  const [query,           setQuery]          = useState("");
-  const [cat,             setCat]            = useState("all");
+  const [query,           setQuery]          = useState('');
+  const [cat,             setCat]            = useState('all');
   const [feats,           setFeats]          = useState([]);
   const [showAllFeats,    setShowAllFeats]   = useState(false);
   const [selectedId,      setSelectedId]     = useState(null);
-  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || MAPBOX_TOKEN);
+  const [token,           setToken]          = useState(() => lsGet(LS_TOKEN) || '');
   const [tokenSaved,      setTokenSaved]     = useState(() => !!lsGet(LS_TOKEN));
-  const [anthropicKey,    setAnthropicKey]   = useState(() => lsGet(LS_ANTHROPIC) || "");
+  const [tokenFromServer, setTokenFromServer]= useState(false);
+  const [anthropicKey,    setAnthropicKey]   = useState(() => lsGet(LS_ANTHROPIC) || '');
   const [anthropicSaved,  setAnthropicSaved] = useState(() => !!lsGet(LS_ANTHROPIC));
-  const [themeId,         setThemeId]        = useState(() => {
-    const s = lsGet(LS_THEME);
-    return s && THEMES.find(t => t.id === s) ? s : DEFAULT_THEME.id;
-  });
+  const [serverHasApiKey, setServerHasApiKey]= useState(false);
+  const [themeId,         setThemeId]        = useState(() => { const s = lsGet(LS_THEME); return s && THEMES.find(t => t.id === s) ? s : DEFAULT_THEME.id; });
   const [settingsOpen,    setSettingsOpen]   = useState(false);
+  const [filterOpen,      setFilterOpen]     = useState(false);
+  const [mobileTab,       setMobileTab]      = useState('list');
+  const [isMobile,        setIsMobile]       = useState(() => window.innerWidth < 1000);
   const [status,          setStatus]         = useState({});
   const [updatingAll,     setUpdatingAll]    = useState(false);
   const [updateProgress,  setUpdateProgress] = useState(0);
   const [updateTotal,     setUpdateTotal]    = useState(0);
-  const cancelRef  = useRef(false);
-  const controlsRef = useRef(null);
+  const [canInstall,      setCanInstall]     = useState(false);
+  const cancelRef    = useRef(false);
+  const controlsRef  = useRef(null);
 
-  // Track controls bar height and keep --controls-h in sync.
+  /* --- Fetch server config on mount (Vercel env vars) --- */
+  useEffect(() => {
+    fetch('/api/config', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(cfg => {
+        if (!cfg) return;
+        // Set Mapbox token from server only if user has no browser-saved token
+        if (cfg.mapboxToken && isTokenValid(cfg.mapboxToken) && !lsGet(LS_TOKEN)) {
+          setToken(cfg.mapboxToken);
+          setTokenFromServer(true);
+        }
+        setServerHasApiKey(!!cfg.hasAnthropicKey);
+      })
+      .catch(() => {}); // Not on Vercel or offline — degrade gracefully
+  }, []);
+
+  /* --- Resize detection --- */
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1000);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  /* --- PWA install prompt --- */
+  useEffect(() => {
+    window.__LFG_INSTALL_READY__ = () => setCanInstall(true);
+    return () => { window.__LFG_INSTALL_READY__ = null; };
+  }, []);
+
+  const installApp = useCallback(async () => {
+    if (!_installPrompt) return;
+    _installPrompt.prompt();
+    const { outcome } = await _installPrompt.userChoice;
+    if (outcome === 'accepted') { setCanInstall(false); _installPrompt = null; }
+  }, []);
+
+  /* --- Controls height -> CSS var --- */
   useEffect(() => {
     const el = controlsRef.current;
     if (!el) return;
-    const apply = () =>
-      document.documentElement.style.setProperty("--controls-h", el.offsetHeight + "px");
+    const apply = () => document.documentElement.style.setProperty('--controls-h', el.offsetHeight + 'px');
     apply();
     const ro = new ResizeObserver(apply);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // Apply theme CSS variables.
+  /* --- Apply theme --- */
   useEffect(() => {
-    const t = THEMES.find(x => x.id === themeId) || DEFAULT_THEME;
-    applyTheme(t);
+    applyTheme(THEMES.find(x => x.id === themeId) || DEFAULT_THEME);
   }, [themeId]);
 
   const activeTheme = THEMES.find(x => x.id === themeId) || DEFAULT_THEME;
 
-  /* --- persistence handlers --- */
-  const handleTheme        = useCallback(id => { setThemeId(id); lsSet(LS_THEME, id); }, []);
-  const handleToken        = useCallback(t  => { setToken(t); setTokenSaved(lsSet(LS_TOKEN, t)); }, []);
-  const handleForgetToken  = useCallback(() => { lsDel(LS_TOKEN); setToken(MAPBOX_TOKEN); setTokenSaved(false); }, []);
-  const handleAnthropicKey = useCallback(k  => { setAnthropicKey(k); setAnthropicSaved(lsSet(LS_ANTHROPIC, k)); }, []);
-  const handleForgetApiKey = useCallback(() => { lsDel(LS_ANTHROPIC); setAnthropicKey(""); setAnthropicSaved(false); }, []);
+  /* --- Persistence handlers --- */
+  const handleTheme       = useCallback(id => { setThemeId(id); lsSet(LS_THEME, id); }, []);
+  const handleToken       = useCallback(t  => { setToken(t); setTokenSaved(lsSet(LS_TOKEN, t)); setTokenFromServer(false); }, []);
+  const handleForgetToken = useCallback(() => {
+    lsDel(LS_TOKEN); setTokenSaved(false); setTokenFromServer(false);
+    // Re-apply server token if available
+    fetch('/api/config', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+      .then(cfg => {
+        if (cfg?.mapboxToken && isTokenValid(cfg.mapboxToken)) { setToken(cfg.mapboxToken); setTokenFromServer(true); }
+        else setToken('');
+      }).catch(() => setToken(''));
+  }, []);
+  const handleApiKey       = useCallback(k  => { setAnthropicKey(k); setAnthropicSaved(lsSet(LS_ANTHROPIC, k)); }, []);
+  const handleForgetApiKey = useCallback(() => { lsDel(LS_ANTHROPIC); setAnthropicKey(''); setAnthropicSaved(false); }, []);
 
-  /* --- filters --- */
-  const toggleFeat = useCallback(f =>
-    setFeats(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]), []);
-  const clearAll   = useCallback(() => { setQuery(""); setCat("all"); setFeats([]); }, []);
+  /* --- Filters --- */
+  const toggleFeat = useCallback(f => setFeats(p => p.includes(f) ? p.filter(x => x !== f) : [...p, f]), []);
+  const clearAll   = useCallback(() => { setQuery(''); setCat('all'); setFeats([]); }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return data.filter(p => {
-      if (cat !== "all" && p.cat !== cat) return false;
+      if (cat !== 'all' && p.cat !== cat) return false;
       if (feats.length && !feats.every(f => p.features.includes(f))) return false;
       if (q) {
-        const hay = (p.name+" "+p.desc+" "+p.why+" "+CAT[p.cat].name+" "+
-          p.features.join(" ")+" "+p.near.join(" ")).toLowerCase();
+        const hay = (p.name+' '+p.desc+' '+p.why+' '+CAT[p.cat].name+' '+
+          p.features.join(' ')+' '+p.near.join(' ')).toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -1662,65 +1877,77 @@ function App() {
     CATEGORIES.map(c => ({ cat: c, items: filtered.filter(p => p.cat === c.key) }))
       .filter(g => g.items.length), [filtered]);
 
+  /* --- Select a place (switches to map tab on mobile) --- */
   const onSelect = useCallback(id => {
     setSelectedId(id);
-    const el = document.getElementById("card-" + id);
-    if (el) el.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
-  }, []);
+    if (isMobile) {
+      setMobileTab('map');
+    } else {
+      const el = document.getElementById('card-' + id);
+      if (el) el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+    }
+  }, [isMobile]);
 
-  /* --- agent update for a single place --- */
+  /* --- Agent: POST to /api/agent (Vercel proxy), fall back to direct call --- */
   const buildPrompt = loc =>
-    "You are a London travel editor. Reply with strict minified JSON only, no markdown and no extra words. " +
-    "Use British English, simple clear language for non-native English speakers, never use emojis or em-dashes. " +
-    'Give fresh visitor details for this London place: "' + loc.name + '". ' +
-    "Return a JSON object with keys: description (two short sentences), features (array of 3-5 short tags), " +
-    "why (one sentence on why to visit), note (one short sentence with any timely 2026 detail, or empty string). " +
-    "Keep all facts accurate as of 2026.";
+    'You are a London travel editor. Reply with strict minified JSON only. ' +
+    'Use British English, simple clear language, never use emojis or em-dashes. ' +
+    'Give fresh 2026 visitor details for: "' + loc.name + '". ' +
+    'Return JSON: { description (2 short sentences), features (3-5 tags), why (1 sentence), note (1 sentence or "") }';
 
   const callAgent = useCallback(async loc => {
-    const headers = { "Content-Type": "application/json" };
-    if (anthropicKey) headers["x-api-key"] = anthropicKey;
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", headers,
-      body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000,
-        messages:[{ role:"user", content: buildPrompt(loc) }] }),
-    });
-    const json = await res.json();
-    const text = (json.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("");
-    return JSON.parse(text.replace(/```json|```/g,"").trim());
+    const body = JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000,
+      messages: [{ role: 'user', content: buildPrompt(loc) }] });
+
+    const parseResponse = async r => {
+      const json = await r.json();
+      if (!r.ok) throw new Error(json.error || 'Agent failed');
+      const text = (json.content||[]).filter(b => b.type==='text').map(b => b.text).join('');
+      return JSON.parse(text.replace(/```json|```/g,'').trim());
+    };
+
+    // 1. Try Vercel proxy (keeps API key server-side)
+    try {
+      const hdrs = { 'Content-Type': 'application/json' };
+      if (anthropicKey) hdrs['x-user-api-key'] = anthropicKey; // fallback if server has no key
+      const r = await fetch('/api/agent', { method: 'POST', headers: hdrs, body });
+      if (r.status !== 404) return await parseResponse(r); // 404 = not on Vercel, fall through
+    } catch(_) { /* network error = not on Vercel */ }
+
+    // 2. Direct Anthropic call (Claude.ai context or local file with user key)
+    const hdrs = { 'Content-Type': 'application/json' };
+    if (anthropicKey) hdrs['x-api-key'] = anthropicKey;
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: hdrs, body });
+    return await parseResponse(r);
   }, [anthropicKey]);
 
-  const applyUpdate = useCallback((locId, u) => {
-    setData(prev => prev.map(p => p.id !== locId ? p : {
+  const applyUpdate = useCallback((id, u) => {
+    setData(prev => prev.map(p => p.id !== id ? p : {
       ...p,
-      desc:     typeof u.description==="string" && u.description ? u.description : p.desc,
+      desc:     typeof u.description==='string' && u.description ? u.description : p.desc,
       features: Array.isArray(u.features) && u.features.length   ? u.features    : p.features,
-      why:      typeof u.why==="string"    && u.why              ? u.why          : p.why,
-      note:     typeof u.note==="string"                         ? u.note         : (p.note||""),
+      why:      typeof u.why==='string'    && u.why              ? u.why          : p.why,
+      note:     typeof u.note==='string'                         ? u.note         : (p.note||''),
     }));
   }, []);
 
-  /* --- update ALL visible places sequentially --- */
+  /* --- Update all visible places sequentially --- */
   const onUpdateAll = useCallback(async () => {
     if (updatingAll) return;
     const places = [...filtered];
-    setUpdatingAll(true);
-    setUpdateProgress(0);
-    setUpdateTotal(places.length);
-    cancelRef.current = false;
-
+    setUpdatingAll(true); setUpdateProgress(0); setUpdateTotal(places.length); cancelRef.current = false;
     for (let i = 0; i < places.length; i++) {
       if (cancelRef.current) break;
       const loc = places[i];
-      setStatus(s => ({ ...s, [loc.id]: "loading" }));
+      setStatus(s => ({ ...s, [loc.id]: 'loading' }));
       try {
         const u = await callAgent(loc);
         applyUpdate(loc.id, u);
-        setStatus(s => ({ ...s, [loc.id]: "done" }));
-        setTimeout(() => setStatus(s => ({ ...s, [loc.id]: "idle" })), 5000);
+        setStatus(s => ({ ...s, [loc.id]: 'done' }));
+        setTimeout(() => setStatus(s => ({ ...s, [loc.id]: 'idle' })), 5000);
       } catch(_) {
-        setStatus(s => ({ ...s, [loc.id]: "error" }));
-        setTimeout(() => setStatus(s => ({ ...s, [loc.id]: "idle" })), 5000);
+        setStatus(s => ({ ...s, [loc.id]: 'error' }));
+        setTimeout(() => setStatus(s => ({ ...s, [loc.id]: 'idle' })), 5000);
       }
       setUpdateProgress(i + 1);
       if (i < places.length - 1 && !cancelRef.current) await sleep(350);
@@ -1728,18 +1955,28 @@ function App() {
     setUpdatingAll(false);
   }, [filtered, updatingAll, callAgent, applyUpdate]);
 
-  const cancelUpdateAll = useCallback(() => { cancelRef.current = true; setUpdatingAll(false); }, []);
+  const cancelUpdate = useCallback(() => { cancelRef.current = true; setUpdatingAll(false); }, []);
 
-  const featuresToShow = showAllFeats ? ALL_FEATURES : ALL_FEATURES.slice(0, 10);
-  const hasFilters = query || cat !== "all" || feats.length;
+  const featuresToShow     = showAllFeats ? ALL_FEATURES : ALL_FEATURES.slice(0, 10);
+  const hasFilters         = query || cat !== 'all' || feats.length;
+  const activeFilterCount  = (cat !== 'all' ? 1 : 0) + feats.length;
+  const mapActive          = !isMobile || mobileTab === 'map';
 
   return (
-    <React.Fragment>
+    <div className={isMobile && mobileTab === 'map' ? 'map-mode' : ''}>
       <SettingsModal
         open={settingsOpen} onClose={() => setSettingsOpen(false)}
-        token={token} onToken={handleToken} onForgetToken={handleForgetToken} tokenSaved={tokenSaved}
-        anthropicKey={anthropicKey} onAnthropicKey={handleAnthropicKey}
+        token={token} onToken={handleToken} onForgetToken={handleForgetToken}
+        tokenSaved={tokenSaved} tokenFromServer={tokenFromServer}
+        anthropicKey={anthropicKey} onAnthropicKey={handleApiKey}
         onForgetAnthropicKey={handleForgetApiKey} anthropicSaved={anthropicSaved}
+        serverHasApiKey={serverHasApiKey} canInstall={canInstall} onInstall={installApp}
+      />
+      <FilterSheet
+        open={filterOpen} onClose={() => setFilterOpen(false)}
+        cat={cat} setCat={setCat} feats={feats} toggleFeat={toggleFeat}
+        clearAll={clearAll} showAllFeats={showAllFeats} setShowAllFeats={setShowAllFeats}
+        featuresToShow={featuresToShow}
       />
 
       <header className="masthead wrap">
@@ -1756,51 +1993,52 @@ function App() {
             <div className="search">
               <SearchIcon />
               <label className="visually-hidden" htmlFor="q">Search places</label>
-              <input id="q" type="text" placeholder="Search by name, area or feature"
+              <input id="q" type="text" placeholder="Search places..."
                 value={query} onChange={e => setQuery(e.target.value)} />
             </div>
-            <span className="count">{filtered.length} of {data.length} places</span>
+            <button className={'filter-badge' + (hasFilters ? ' has-filters' : '')} onClick={() => setFilterOpen(true)}>
+              <FilterIcon />Filters
+              {activeFilterCount > 0 && <span className="filter-dot">{activeFilterCount}</span>}
+            </button>
+            <span className="count">{filtered.length} of {data.length}</span>
             {hasFilters ? <button className="linkbtn" onClick={clearAll}>Clear</button> : null}
-
             <div className="search-tools">
               {updatingAll ? (
                 <span className="update-progress">
                   <span className="spinner" />
-                  <span><span className="update-count">{updateProgress}</span> of {updateTotal}</span>
-                  <button className="linkbtn" onClick={cancelUpdateAll}>Cancel</button>
+                  <span><span className="update-count">{updateProgress}</span>/{updateTotal}</span>
+                  <button className="linkbtn" onClick={cancelUpdate}>Cancel</button>
                 </span>
               ) : (
-                <button className="btn ghost" onClick={onUpdateAll} disabled={!filtered.length} title="Fetch fresh details for all visible places via the agent">
-                  <RefreshIcon /> Update all {filtered.length > 0 ? filtered.length : ""}
+                <button className="btn ghost" onClick={onUpdateAll} disabled={!filtered.length}>
+                  <RefreshIcon /><span className="update-text"> Update all {filtered.length > 0 ? filtered.length : ''}</span>
                 </button>
               )}
-              <ThemePicker currentTheme={themeId} onTheme={handleTheme} />
-              <button className="gear-btn" onClick={() => setSettingsOpen(true)} aria-label="Open settings">
-                <GearIcon />
-              </button>
+              <ThemePicker currentTheme={themeId} onTheme={handleTheme} iconOnly={isMobile} />
+              <button className="gear-btn" onClick={() => setSettingsOpen(true)} aria-label="Settings"><GearIcon /></button>
             </div>
           </div>
-
-          <div className="chiprow">
-            <button className={"chip" + (cat === "all" ? " active" : "")} onClick={() => setCat("all")}>All categories</button>
-            {CATEGORIES.map(c => (
-              <button key={c.key} className={"chip" + (cat === c.key ? " active" : "")}
-                onClick={() => setCat(cat === c.key ? "all" : c.key)}>
-                <span className="dot" style={{ background: c.color }} />{c.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="filters-label">Filter by feature</div>
-          <div className="chiprow wrapped">
-            {featuresToShow.map(f => (
-              <button key={f} className={"chip feat" + (feats.includes(f) ? " active" : "")} onClick={() => toggleFeat(f)}>{f}</button>
-            ))}
-            {ALL_FEATURES.length > 10 && (
-              <button className="chip" onClick={() => setShowAllFeats(v => !v)}>
-                {showAllFeats ? "Fewer filters" : "More filters"}
-              </button>
-            )}
+          <div className="desktop-filters">
+            <div className="chiprow" style={{ marginTop:8 }}>
+              <button className={'chip' + (cat === 'all' ? ' active' : '')} onClick={() => setCat('all')}>All</button>
+              {CATEGORIES.map(c => (
+                <button key={c.key} className={'chip' + (cat === c.key ? ' active' : '')}
+                  onClick={() => setCat(cat === c.key ? 'all' : c.key)}>
+                  <span className="dot" style={{ background: c.color }} />{c.name}
+                </button>
+              ))}
+            </div>
+            <div className="filters-label">Filter by feature</div>
+            <div className="chiprow wrapped">
+              {featuresToShow.map(f => (
+                <button key={f} className={'chip feat' + (feats.includes(f) ? ' active' : '')} onClick={() => toggleFeat(f)}>{f}</button>
+              ))}
+              {ALL_FEATURES.length > 10 && (
+                <button className="chip" onClick={() => setShowAllFeats(v => !v)}>
+                  {showAllFeats ? 'Fewer filters' : 'More filters'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1809,7 +2047,7 @@ function App() {
         <div className="col-list">
           {grouped.length === 0 ? (
             <div className="empty-state">
-              <h3>No places match your filters</h3>
+              <h3>No places match</h3>
               <p>Try removing a feature or choosing a different category.</p>
               <p style={{ marginTop:12 }}><button className="btn primary" onClick={clearAll}>Clear filters</button></p>
             </div>
@@ -1818,37 +2056,46 @@ function App() {
               <div className="sec-head">
                 <span className="sec-dot" style={{ background: g.cat.color }} />
                 <h2 className="sec-name">{g.cat.name}</h2>
-                <span className="sec-count">{g.items.length} {g.items.length === 1 ? "place" : "places"}</span>
+                <span className="sec-count">{g.items.length} {g.items.length === 1 ? 'place' : 'places'}</span>
               </div>
               <p className="sec-blurb">{g.cat.blurb}</p>
               <div className="grid">
                 {g.items.map(loc => (
                   <Card key={loc.id} loc={loc} selected={selectedId === loc.id}
-                    onSelect={onSelect} status={status[loc.id] || "idle"} />
+                    onSelect={onSelect} status={status[loc.id] || 'idle'} />
                 ))}
               </div>
             </section>
           ))}
         </div>
-
         <aside className="col-map">
-          <MapPanel items={filtered} selectedId={selectedId} onSelect={setSelectedId}
+          <MapPanel items={filtered} selectedId={selectedId} onSelect={onSelect}
             token={token} onToken={handleToken} onForgetToken={handleForgetToken}
-            tokenSaved={tokenSaved} mapStyle={activeTheme.mapStyle} />
+            tokenSaved={tokenSaved} tokenFromServer={tokenFromServer}
+            mapStyle={activeTheme.mapStyle} mapActive={mapActive} />
         </aside>
       </main>
 
       <footer className="footer">
         <div className="wrap">
-          <p>London, A Visitor's Field Guide. Built by Hamid Basri <a href="https://www.basri.co.uk" target="_blank">https://www.basri.co.uk</a>. Details current as of June 2026. Opening times and prices can change, so it is wise to check ahead before you set out.</p>
-          <p>Map powered by Mapbox. Use the gear icon to manage your tokens. Update all uses the Claude API to refresh every visible place's details on demand.</p>
+          <p>London, A Visitor's Field Guide. Built by Hamid. Details current as of June 2026. Opening times and prices change, so check ahead before you set out.</p>
+          <p>Map powered by Mapbox. Agent powered by Claude. Set <code>MAPBOX_TOKEN</code> and <code>ANTHROPIC_KEY</code> in Vercel to activate both for all visitors.</p>
         </div>
       </footer>
-    </React.Fragment>
+
+      <nav className="mobile-tabs" aria-label="Main navigation">
+        <button className={'tab-btn' + (mobileTab === 'list' ? ' tab-active' : '')} onClick={() => setMobileTab('list')}>
+          <ListIcon />Places
+        </button>
+        <button className={'tab-btn' + (mobileTab === 'map' ? ' tab-active' : '')} onClick={() => setMobileTab('map')}>
+          <MapTabIcon />Map
+        </button>
+      </nav>
+    </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
 </script>
 </body>
