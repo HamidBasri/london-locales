@@ -4,12 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#7C2A33" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="London Guide" />
 <meta name="description" content="Every London landmark worth seeing, with live map, best-time guidance, and agent-powered updates." />
 <title>London, A Visitor's Field Guide</title>
 
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="manifest" href="/manifest.json" />
 <link rel="apple-touch-icon" href="/icon-192.svg" />
 
@@ -77,7 +78,7 @@
     -webkit-backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--line);
   }
-  .controls-inner { padding: 10px 0; }
+  .controls-inner { padding-top: 10px; padding-bottom: 10px; }
 
   /* Search row — always visible */
   .search-row { display: flex; gap: 8px; align-items: center; }
@@ -163,7 +164,7 @@
 
   /* ── Layout ──────────────────────────────────────────────────── */
   /* Mobile: single column, map hidden by default */
-  .layout { padding: 20px 0 calc(var(--tabs-h) + var(--safe-b) + 16px); }
+  .layout { padding-top: 20px; padding-bottom: calc(var(--tabs-h) + var(--safe-b) + 16px); }
   .col-map { display: none; }
 
   /* Map-mode: hide list, show map full-height */
@@ -458,7 +459,8 @@
       grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
       align-items: start;
       gap: 26px;
-      padding: 26px 0 70px;
+      padding-top: 26px;
+      padding-bottom: 70px;
     }
     .col-map {
       display: block !important;  /* always visible on desktop */
@@ -507,13 +509,27 @@
 <body>
 
 <script>
-/* Register service worker (works on Vercel HTTPS; no-op from file://) */
+/* Register service worker (works on Vercel HTTPS; silently fails from file://) */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .catch(function() {});
   });
 }
+
+/*
+ * Disable Mapbox telemetry before the map is created.
+ * Mapbox GL JS sends usage events to events.mapbox.com which ad-blockers
+ * intercept, flooding the console with net::ERR_BLOCKED_BY_CLIENT errors.
+ * Nulling the endpoint prevents those requests entirely.
+ */
+window.addEventListener('load', function() {
+  try {
+    if (typeof mapboxgl !== 'undefined' && mapboxgl.config) {
+      mapboxgl.config.EVENTS_URL = null;
+    }
+  } catch(_) {}
+});
 </script>
 
 <div id="root"></div>
@@ -2080,6 +2096,7 @@ function App() {
         <div className="wrap">
           <p>London, A Visitor's Field Guide. Built by Hamid. Details current as of June 2026. Opening times and prices change, so check ahead before you set out.</p>
           <p>Map powered by Mapbox. Agent powered by Claude. Set <code>MAPBOX_TOKEN</code> and <code>ANTHROPIC_KEY</code> in Vercel to activate both for all visitors.</p>
+          <p style="margin-top:8px;font-size:11px;opacity:.6">v0.1.0</p>
         </div>
       </footer>
 
