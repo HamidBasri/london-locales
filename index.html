@@ -61,7 +61,7 @@
   .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
 
   /* ── Masthead ────────────────────────────────────────────────── */
-  .masthead { padding: 28px 0 16px; text-align: center; }
+  .masthead { padding: 20px 0 14px; text-align: center; }
   .kicker { font-size: 10px; letter-spacing: .28em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 10px; }
   .nameplate {
     font-family: "Libre Caslon Display", Georgia, serif;
@@ -197,7 +197,7 @@
 
   /* ── Layout ──────────────────────────────────────────────────── */
   /* Mobile: single column, map hidden by default */
-  .layout { padding-top: 20px; padding-bottom: calc(var(--tabs-h) + var(--safe-b) + 16px); }
+  .layout { padding-top: 16px; padding-bottom: calc(var(--tabs-h) + var(--safe-b) + 16px); }
   .col-map { display: none; }
 
   /* Map-mode: hide list, show map full-height */
@@ -289,18 +289,18 @@
   }
 
   /* ── Sections + cards ────────────────────────────────────────── */
-  .col-list { display: flex; flex-direction: column; gap: 40px; }
+  .col-list { display: flex; flex-direction: column; gap: 28px; }
   .section { scroll-margin-top: calc(var(--controls-h) + 12px); }
-  .sec-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 4px; }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
   .sec-dot { width: 11px; height: 11px; border-radius: 50%; transform: translateY(1px); flex-shrink: 0; }
   .sec-name { font-family: "Libre Caslon Display", serif; font-size: 24px; margin: 0; }
   .sec-count { font-size: 12px; color: var(--ink-faint); }
-  .sec-blurb { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 14px; }
+  .sec-blurb { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 16px; }
   .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
 
   .card {
     background: var(--stone-card); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    padding: 18px; display: flex; flex-direction: column; gap: 12px;
     box-shadow: var(--shadow); transition: border-color .18s, box-shadow .18s;
     -webkit-tap-highlight-color: transparent;
   }
@@ -323,7 +323,7 @@
   .actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn {
     cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
-    border-radius: 999px; padding: 9px 16px; border: 1px solid transparent;
+    border-radius: 999px; padding: 10px 18px; border: 1px solid transparent;
     display: inline-flex; align-items: center; gap: 7px;
     transition: background .15s, color .15s, border-color .15s;
     -webkit-tap-highlight-color: transparent;
@@ -355,7 +355,7 @@
   .photo-link {
     display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
     color: var(--ink-soft); text-decoration: none; border: 1px solid var(--line);
-    border-radius: 999px; padding: 5px 11px; background: var(--stone-deep);
+    border-radius: 999px; padding: 7px 13px; background: var(--stone-deep);
     transition: border-color .15s, color .15s; white-space: nowrap;
   }
   .photo-link:hover { color: var(--claret); border-color: var(--claret); }
@@ -452,7 +452,7 @@
   .empty-state { border: 1px dashed var(--line); border-radius: var(--radius); padding: 36px 20px;
     text-align: center; color: var(--ink-soft); background: var(--stone-card); }
   .empty-state h3 { font-family: "Libre Caslon Display", serif; color: var(--ink); margin: 0 0 6px; }
-  .footer { border-top: 1px solid var(--line); padding: 22px 0 40px; color: var(--ink-faint); font-size: 12.5px; }
+  .footer { border-top: 1px solid var(--line); padding: 22px 0 calc(var(--tabs-h) + var(--safe-b) + 24px); color: var(--ink-faint); font-size: 12.5px; }
   .footer p { margin: 4px 0; }
 
   /* ── PWA install banner (mobile home page) ───────────────────── */
@@ -562,8 +562,10 @@
     .mobile-tabs { display: none; }
 
     .section { scroll-margin-top: calc(var(--controls-h) + 24px); }
+    .col-list { gap: 40px; }
+    .footer { padding-bottom: 40px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 18px; }
-    .card { padding: 18px; gap: 11px; }
+    .card { padding: 18px; gap: 12px; }
     .card:hover { transform: translateY(-2px); }
     .masthead { padding: 40px 0 22px; }
     .sub { font-size: 15px; }
@@ -588,6 +590,29 @@
     font-size: .9em; background: var(--stone-deep); padding: 1px 5px;
     border-radius: 4px; color: var(--ink);
   }
+
+  /* ── API loading banner ──────────────────────────────────────── */
+  .api-loading {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; color: var(--ink-soft);
+    padding: 8px 0 4px;
+  }
+  .api-loading .spinner { width: 11px; height: 11px; }
+
+  /* ── Load-more section button ───────────────────────────────── */
+  .sec-more {
+    margin-top: 14px; width: 100%; cursor: pointer;
+    background: var(--stone-card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 12px 16px;
+    font: inherit; font-size: 13px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: border-color .15s, color .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sec-more:hover { border-color: var(--ink-faint); color: var(--ink); }
+
+  /* ── Data source badge in footer ────────────────────────────── */
+  .osm-credit { font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
 
 </style>
 </head>
@@ -709,7 +734,7 @@ const CAT = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
 
 
 
-const RAW = [
+const CURATED = [
   // Royal London
   { id:"buckingham", name:"Buckingham Palace", cat:"royal", lat:51.5014, lng:-0.1419,
     desc:"The official London home of the King and the most famous royal address in the country. In summer the lavish State Rooms open to visitors.",
@@ -1580,7 +1605,15 @@ const SCORES = {
   petersham:{google:4.6,tripadvisor:4.5,michelin:1},
 };
 
-const ALL_FEATURES = Array.from(new Set(RAW.flatMap(p => p.features))).sort();
+/* ALL_FEATURES is recomputed from merged data inside the App component */
+const CURATED_FEATURES = Array.from(new Set(CURATED.flatMap(p => p.features))).sort();
+
+/* Merge curated (rich) data with API places — curated always wins on name match */
+function mergePlaces(curated, apiPlaces) {
+  const curatedNames = new Set(curated.map(p => p.name.toLowerCase().trim()));
+  const extras = apiPlaces.filter(p => !curatedNames.has(p.name.toLowerCase().trim()));
+  return [...curated, ...extras];
+}
 
 const { useState, useMemo, useEffect, useRef, useCallback } = React;
 
@@ -1813,7 +1846,7 @@ function ThemePicker({ currentTheme, onTheme, iconOnly }) {
  * Mobile filter sheet
  * ------------------------------------------------------------------ */
 function FilterSheet({ open, onClose, cat, setCat, feats, toggleFeat, clearAll,
-                        showAllFeats, setShowAllFeats, featuresToShow }) {
+                        showAllFeats, setShowAllFeats, featuresToShow, totalFeatures }) {
   useEffect(() => {
     if (!open) return;
     const h = e => { if (e.key === 'Escape') onClose(); };
@@ -1850,7 +1883,7 @@ function FilterSheet({ open, onClose, cat, setCat, feats, toggleFeat, clearAll,
             {featuresToShow.map(f => (
               <button key={f} className={'chip feat' + (feats.includes(f) ? ' active' : '')} onClick={() => toggleFeat(f)}>{f}</button>
             ))}
-            {ALL_FEATURES.length > 10 && (
+            {totalFeatures > 10 && (
               <button className="chip" onClick={() => setShowAllFeats(v => !v)}>
                 {showAllFeats ? 'Fewer' : 'More...'}
               </button>
@@ -2234,7 +2267,10 @@ function Card({ loc, selected, onSelect, status }) {
  * App
  * ------------------------------------------------------------------ */
 function App() {
-  const [data,            setData]           = useState(RAW);
+  const [data,            setData]           = useState(CURATED);
+  const [apiLoading,      setApiLoading]     = useState(true);
+  const [apiError,        setApiError]       = useState(null);
+  const [secLimit,        setSecLimit]       = useState({});
   const [query,           setQuery]          = useState('');
   const [cat,             setCat]            = useState('all');
   const [feats,           setFeats]          = useState([]);
@@ -2275,6 +2311,54 @@ function App() {
     const check = () => setIsMobile(window.innerWidth < 1000);
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  /* --- Load comprehensive places from API and merge with curated set --- */
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAll() {
+      setApiLoading(true);
+      setApiError(null);
+
+      // Fetch in pages of 500 in parallel after discovering page count
+      try {
+        const first = await fetch('/api/places?limit=500&page=1');
+        if (!first.ok) throw new Error('HTTP ' + first.status);
+        const fd = await first.json();
+        if (cancelled) return;
+
+        const pageCount = fd.pages;
+        const allPlaces = [...fd.places];
+
+        // Fetch remaining pages in parallel (up to ~22 pages for 11k places)
+        if (pageCount > 1) {
+          const rest = await Promise.all(
+            Array.from({ length: pageCount - 1 }, (_, i) =>
+              fetch('/api/places?limit=500&page=' + (i + 2))
+                .then(r => r.ok ? r.json() : Promise.resolve({ places: [] }))
+                .then(d => d.places || [])
+                .catch(() => [])
+            )
+          );
+          if (cancelled) return;
+          for (const batch of rest) allPlaces.push(...batch);
+        }
+
+        if (!cancelled) {
+          setData(prev => mergePlaces(prev, allPlaces));
+          setApiLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setApiError(err.message);
+          setApiLoading(false);
+        }
+      }
+    }
+
+    loadAll();
+    return () => { cancelled = true; };
   }, []);
 
   /* --- PWA install prompt --- */
@@ -2437,7 +2521,8 @@ function App() {
 
   const cancelUpdate = useCallback(() => { cancelRef.current = true; setUpdatingAll(false); }, []);
 
-  const featuresToShow     = showAllFeats ? ALL_FEATURES : ALL_FEATURES.slice(0, 10);
+  const allFeatures        = useMemo(() => Array.from(new Set(data.flatMap(p => p.features))).sort(), [data]);
+  const featuresToShow     = showAllFeats ? allFeatures : allFeatures.slice(0, 10);
   const hasFilters         = query || cat !== 'all' || feats.length;
   const activeFilterCount  = (cat !== 'all' ? 1 : 0) + feats.length;
   const mapActive          = !isMobile || mobileTab === 'map';
@@ -2458,7 +2543,7 @@ function App() {
         open={filterOpen} onClose={() => setFilterOpen(false)}
         cat={cat} setCat={setCat} feats={feats} toggleFeat={toggleFeat}
         clearAll={clearAll} showAllFeats={showAllFeats} setShowAllFeats={setShowAllFeats}
-        featuresToShow={featuresToShow}
+        featuresToShow={featuresToShow} totalFeatures={allFeatures.length}
       />
 
       <header className="masthead wrap">
@@ -2548,7 +2633,7 @@ function App() {
               {featuresToShow.map(f => (
                 <button key={f} className={'chip feat' + (feats.includes(f) ? ' active' : '')} onClick={() => toggleFeat(f)}>{f}</button>
               ))}
-              {ALL_FEATURES.length > 10 && (
+              {allFeatures.length > 10 && (
                 <button className="chip" onClick={() => setShowAllFeats(v => !v)}>
                   {showAllFeats ? 'Fewer filters' : 'More filters'}
                 </button>
@@ -2560,28 +2645,54 @@ function App() {
 
       <main className="wrap layout">
         <div className="col-list">
+          {/* API loading indicator — shown while fetching comprehensive data */}
+          {apiLoading && (
+            <div className="api-loading">
+              <span className="spinner" />
+              Loading {data.length.toLocaleString()} places — fetching more from OpenStreetMap…
+            </div>
+          )}
+          {apiError && (
+            <div className="api-loading" style={{ color: 'var(--claret)' }}>
+              ⚠ Could not load extra places from API — showing {data.length} curated places.
+            </div>
+          )}
+
           {grouped.length === 0 ? (
             <div className="empty-state">
               <h3>No places match</h3>
               <p>Try removing a feature or choosing a different category.</p>
               <p style={{ marginTop:12 }}><button className="btn primary" onClick={clearAll}>Clear filters</button></p>
             </div>
-          ) : grouped.map(g => (
-            <section className="section" key={g.cat.key}>
-              <div className="sec-head">
-                <span className="sec-dot" style={{ background: g.cat.color }} />
-                <h2 className="sec-name">{g.cat.name}</h2>
-                <span className="sec-count">{g.items.length} {g.items.length === 1 ? 'place' : 'places'}</span>
-              </div>
-              <p className="sec-blurb">{g.cat.blurb}</p>
-              <div className="grid">
-                {g.items.map(loc => (
-                  <Card key={loc.id} loc={loc} selected={selectedId === loc.id}
-                    onSelect={onSelect} status={status[loc.id] || 'idle'} />
-                ))}
-              </div>
-            </section>
-          ))}
+          ) : grouped.map(g => {
+            const STEP    = 24;
+            const limit   = secLimit[g.cat.key] || STEP;
+            const showing = hasFilters ? g.items : g.items.slice(0, limit);
+            const remaining = g.items.length - showing.length;
+            return (
+              <section className="section" key={g.cat.key} id={'sec-' + g.cat.key}>
+                <div className="sec-head">
+                  <span className="sec-dot" style={{ background: g.cat.color }} />
+                  <h2 className="sec-name">{g.cat.name}</h2>
+                  <span className="sec-count">{g.items.length} {g.items.length === 1 ? 'place' : 'places'}</span>
+                </div>
+                <p className="sec-blurb">{g.cat.blurb}</p>
+                <div className="grid">
+                  {showing.map(loc => (
+                    <Card key={loc.id} loc={loc} selected={selectedId === loc.id}
+                      onSelect={onSelect} status={status[loc.id] || 'idle'} />
+                  ))}
+                </div>
+                {!hasFilters && remaining > 0 && (
+                  <button className="sec-more"
+                    onClick={() => setSecLimit(s => ({ ...s, [g.cat.key]: (s[g.cat.key] || STEP) + STEP }))}>
+                    Show {Math.min(STEP, remaining)} more
+                    <span style={{ color: 'var(--ink-faint)', fontSize: '12px' }}>({remaining} remaining)</span>
+                  </button>
+                )}
+              </section>
+            );
+          })}
         </div>
         <aside className="col-map">
           <MapPanel items={filtered} selectedId={selectedId} onSelect={onSelect}
@@ -2595,7 +2706,8 @@ function App() {
         <div className="wrap">
           <p>London, A Visitor's Field Guide. Built by <a href="https://www.basri.co.uk" target="_blank" rel="noopener noreferrer">Hamid Basri</a>. Details current as of June 2026. Opening times and prices change, so check ahead before you set out.</p>
           <p>Map powered by Mapbox. Agent powered by Claude. Set <code>MAPBOX_TOKEN</code> and <code>ANTHROPIC_KEY</code> in Vercel to activate both for all visitors.</p>
-          <p style={{ marginTop: '8px', fontSize: '11px', opacity: 0.6 }}>v0.1.0</p>
+          <p className="osm-credit">Place data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>, ODbL 1.0. Run <code>node scripts/fetch-places.js</code> to refresh.</p>
+          <p style={{ marginTop: '6px', fontSize: '11px', opacity: 0.6 }}>v0.2.0</p>
         </div>
       </footer>
 
